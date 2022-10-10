@@ -95,4 +95,9 @@ proxies:
   - { name: 香港--03, type: ss, server: com, port: 4012, cipher: aes-256-gcm, password: '114514', plugin: obfs, plugin-opts: { mode: http, host: microsoft.com }, udp: true }
 ").unwrap();
     println!("{:?}", yaml_test);
+
+    // TODO: read yaml file
+    // TODO: for proxies list
+    // TODO: match attrset[type]
+    // TODO: convert
 }
