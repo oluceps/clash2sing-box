@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
+use yaml_rust::YamlLoader;
 
+#[allow(dead_code)]
 enum AvalProtocals {
     SOCKS,
     HTTP,
@@ -15,11 +17,13 @@ enum AvalProtocals {
 }
 
 // TODO: TLS
+#[allow(unused)]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-struct tls {}
+struct Tls {}
 
+#[allow(unused)]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-struct multiplex {
+struct Multiplex {
     enable: bool,
     protocal: String,
     max_connections: u16,
@@ -46,7 +50,7 @@ struct HTTP {
     server_port: u16,
     username: String,
     password: String,
-    tls: tls,
+    tls: Tls,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -60,9 +64,35 @@ struct Shadowsocks {
     plugin_opts: String,
     network: String,
     udp_over_tcp: bool,
-    multiplex: multiplex,
+    multiplex: Multiplex,
+}
+
+#[allow(unused)]
+trait CouldBeConvert {
+    fn convert(&self, yaml_data: Vec<yaml_rust::Yaml>) -> () {}
+}
+
+#[allow(unused)]
+impl CouldBeConvert for SOCKS {
+    fn convert(&self, yaml_data: Vec<yaml_rust::Yaml>) -> () {}
+}
+
+#[allow(unused)]
+impl CouldBeConvert for HTTP {
+    fn convert(&self, yaml_data: Vec<yaml_rust::Yaml>) -> () {}
+}
+
+#[allow(unused)]
+impl CouldBeConvert for Shadowsocks {
+    fn convert(&self, yaml_data: Vec<yaml_rust::Yaml>) -> () {}
 }
 
 fn main() {
-    println!("Hello, world!");
+    let yaml_test = YamlLoader::load_from_str("
+proxies:
+  - { name: 香港--01, type: ss, server: com, port: 4002, cipher: aes-256-gcm, password: '114514', plugin: obfs, plugin-opts: { mode: http, host: microsoft.com }, udp: true }
+  - { name: 香港--02, type: ss, server: com, port: 4003, cipher: aes-256-gcm, password: '114514', plugin: obfs, plugin-opts: { mode: http, host: microsoft.com }, udp: true }
+  - { name: 香港--03, type: ss, server: com, port: 4012, cipher: aes-256-gcm, password: '114514', plugin: obfs, plugin-opts: { mode: http, host: microsoft.com }, udp: true }
+").unwrap();
+    println!("{:?}", yaml_test);
 }
