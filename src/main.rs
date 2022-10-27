@@ -91,20 +91,11 @@ impl CouldBeConvert for Shadowsocks {
     fn convert(&self, yaml_data: yaml_rust::Yaml) -> () {}
 }
 
-#[allow(unused)]
-fn main() {
-    let yaml_str =
-        "
-proxies:
-  - { name: 香港--01, type: ss, server: com, port: 4002, cipher: aes-256-gcm, password: '114514', plugin: obfs, plugin-opts: { mode: http, host: microsoft.com }, udp: true }
-  - { name: 香港--02, type: ss, server: com, port: 4003, cipher: aes-256-gcm, password: '114514', plugin: obfs, plugin-opts: { mode: http, host: microsoft.com }, udp: true }
-  - { name: 香港--03, type: ss, server: com, port: 4012, cipher: aes-256-gcm, password: '114514', plugin: obfs, plugin-opts: { mode: http, host: microsoft.com }, udp: true }
-";
-    let yaml_test = &YamlLoader::load_from_str(yaml_str).unwrap()[0];
+fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Vec<AvalProtocals> {
     // single node: yaml_test["proxies"][n]
-    let node_list: Vec<AvalProtocals> = vec![];
+    let mut node_list: Vec<AvalProtocals> = vec![];
 
-    for (index, single_node) in yaml_test["proxies"].clone().into_iter().enumerate() {
+    for (index, single_node) in yaml_data["proxies"].clone().into_iter().enumerate() {
         println!("{:?}", single_node["server"]);
 
         let param_str = |eter: &str| single_node[eter].clone().into_string().unwrap();
@@ -161,7 +152,26 @@ proxies:
         };
 
         //        let a = processed_node::new();
-        println!("{:?}", tobe_node)
+        node_list.push(tobe_node);
+    }
+    node_list
+}
+
+#[allow(unused)]
+fn main() {
+    let yaml_str =
+        "
+proxies:
+  - { name: 香港--01, type: ss, server: com, port: 4002, cipher: aes-256-gcm, password: '114514', plugin: obfs, plugin-opts: { mode: http, host: microsoft.com }, udp: true }
+  - { name: 香港--02, type: ss, server: com, port: 4003, cipher: aes-256-gcm, password: '114514', plugin: obfs, plugin-opts: { mode: http, host: microsoft.com }, udp: true }
+  - { name: 香港--03, type: ss, server: com, port: 4012, cipher: aes-256-gcm, password: '114514', plugin: obfs, plugin-opts: { mode: http, host: microsoft.com }, udp: true }
+";
+    let yaml_test = YamlLoader::load_from_str(yaml_str).unwrap()[0].clone();
+
+    let node_list = convert_to_node_vec(&yaml_test);
+
+    for i in node_list {
+        println!("{:?}", i)
     }
 
     // TODO: read yaml file
