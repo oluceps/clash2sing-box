@@ -2,8 +2,9 @@ use serde::{Deserialize, Serialize};
 use yaml_rust::YamlLoader;
 
 #[allow(dead_code)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 enum AvalProtocals {
-    Socks(SOCKS),
+    Socks(Socks),
     HTTP(HTTP),
     Shadowsocks(Shadowsocks),
     //VMess,
@@ -32,7 +33,7 @@ struct Multiplex {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-struct SOCKS {
+struct Socks {
     r#type: String,
     tag: String,
     server: String,
@@ -40,7 +41,7 @@ struct SOCKS {
     version: u16,
     username: String,
     password: String,
-    network: String,
+    network: Option<String>,
     udp_over_tcp: bool,
 }
 
@@ -76,7 +77,7 @@ trait CouldBeConvert {
 }
 
 #[allow(unused)]
-impl CouldBeConvert for SOCKS {
+impl CouldBeConvert for Socks {
     fn convert(&self, yaml_data: yaml_rust::Yaml) -> () {}
 }
 
@@ -103,18 +104,22 @@ proxies:
     // single node: yaml_test["proxies"][n]
     let node_list: Vec<AvalProtocals> = vec![];
 
-    for single_node in yaml_test["proxies"].clone() {
+    for (index, single_node) in yaml_test["proxies"].clone().into_iter().enumerate() {
         println!("{:?}", single_node["server"]);
+
+        let param_str = |eter: &str| single_node[eter].clone().into_string().unwrap();
+
+        let param_int = |eter: &str| single_node[eter].clone().into_i64().unwrap() as u16;
 
         let tobe_node = match single_node["type"].clone().into_string().unwrap().as_str() {
             "ss" => AvalProtocals::Shadowsocks(Shadowsocks {
                 r#type: "ss".to_string(),
-                tag: "".to_string(),
-                server: "".to_string(),
-                server_port: 0,
-                method: "".to_string(),
-                password: "".to_string(),
-                plugin: "".to_string(),
+                tag: format!("ss-{index}"),
+                server: param_str("server"),
+                server_port: param_int("port"),
+                method: param_str("cipher"),
+                password: param_str("password"),
+                plugin: param_str("plugin"),
                 plugin_opts: "".to_string(),
                 network: "".to_string(),
                 udp_over_tcp: false,
@@ -127,32 +132,36 @@ proxies:
                 }),
             }),
 
-            "socks" => AvalProtocals::Socks(SOCKS {
+            "socks5" => AvalProtocals::Socks(Socks {
                 r#type: "socks".to_string(),
-                tag: "".to_string(),
-                server: "".to_string(),
-                server_port: 0,
-                version: 0,
-                username: "".to_string(),
-                password: "".to_string(),
-                network: "".to_string(),
+                tag: format!("socks-{index}"),
+                server: param_str("server"),
+                server_port: param_int("port"),
+                version: 5,
+                username: param_str("username"),
+                password: param_str("password"),
+                network: if !single_node["udp"].is_null() {
+                    Some("udp".to_string())
+                } else {
+                    None
+                },
                 udp_over_tcp: false,
             }),
 
             "http" => AvalProtocals::HTTP(HTTP {
                 r#type: "http".to_string(),
-                tag: "".to_string(),
-                server: "".to_string(),
-                server_port: 0,
-                username: "".to_string(),
-                password: "".to_string(),
+                tag: format!("http-{index}"),
+                server: param_str("server"),
+                server_port: param_int("port"),
+                username: param_str("username"),
+                password: param_str("password"),
                 tls: TLS {},
             }),
             &_ => todo!(),
         };
 
         //        let a = processed_node::new();
-        //        println!("{:?}", a)
+        println!("{:?}", tobe_node)
     }
 
     // TODO: read yaml file
