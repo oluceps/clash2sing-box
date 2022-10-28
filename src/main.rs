@@ -1,4 +1,7 @@
 use serde::{Deserialize, Serialize};
+use std::fs::read_to_string;
+use std::fs::OpenOptions;
+use std::path::PathBuf;
 use yaml_rust::YamlLoader;
 
 #[allow(dead_code)]
@@ -71,26 +74,6 @@ struct Shadowsocks {
     multiplex: Option<Multiplex>,
 }
 
-#[allow(unused)]
-trait CouldBeConvert {
-    fn convert(&self, yaml_data: yaml_rust::Yaml) -> () {}
-}
-
-#[allow(unused)]
-impl CouldBeConvert for Socks {
-    fn convert(&self, yaml_data: yaml_rust::Yaml) -> () {}
-}
-
-#[allow(unused)]
-impl CouldBeConvert for HTTP {
-    fn convert(&self, yaml_data: yaml_rust::Yaml) -> () {}
-}
-
-#[allow(unused)]
-impl CouldBeConvert for Shadowsocks {
-    fn convert(&self, yaml_data: yaml_rust::Yaml) -> () {}
-}
-
 fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Vec<AvalProtocals> {
     // single node: yaml_test["proxies"][n]
     let mut node_list: Vec<AvalProtocals> = vec![];
@@ -157,18 +140,19 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Vec<AvalProtocals> {
     node_list
 }
 
+fn read_yaml() -> yaml_rust::Yaml {
+    let yaml_path = PathBuf::from("./config.yaml");
+
+    let yaml_data = YamlLoader::load_from_str(
+        &read_to_string(yaml_path).expect("Should have been able to read the file"),
+    );
+
+    yaml_data.unwrap()[0].clone()
+}
+
 #[allow(unused)]
 fn main() {
-    let yaml_str =
-        "
-proxies:
-  - { name: 香港--01, type: ss, server: com, port: 4002, cipher: aes-256-gcm, password: '114514', plugin: obfs, plugin-opts: { mode: http, host: microsoft.com }, udp: true }
-  - { name: 香港--02, type: ss, server: com, port: 4003, cipher: aes-256-gcm, password: '114514', plugin: obfs, plugin-opts: { mode: http, host: microsoft.com }, udp: true }
-  - { name: 香港--03, type: ss, server: com, port: 4012, cipher: aes-256-gcm, password: '114514', plugin: obfs, plugin-opts: { mode: http, host: microsoft.com }, udp: true }
-";
-    let yaml_test = YamlLoader::load_from_str(yaml_str).unwrap()[0].clone();
-
-    let node_list = convert_to_node_vec(&yaml_test);
+    let node_list = convert_to_node_vec(&read_yaml());
 
     for i in node_list {
         println!("{:?}", i)
