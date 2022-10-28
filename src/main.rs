@@ -150,17 +150,19 @@ fn read_yaml() -> yaml_rust::Yaml {
     yaml_data.unwrap()[0].clone()
 }
 
+// fn to_json(node_list: Vec<AvalProtocals>) ->
+
 #[allow(unused)]
 fn main() {
     let node_list = convert_to_node_vec(&read_yaml());
 
-    for i in node_list {
-        println!("{:?}", i)
-    }
+    //    for i in node_list {
+    //        println!("{:?}", i)
+    //    }
 
-    // TODO: read yaml file
-    // TODO: for proxies list
-    // TODO: match attrset[type]
-    // TODO: convert
+    let j = serde_json::to_string(&node_list).unwrap();
+
+    println!("{:#}", j)
+
     // TODO: write to json
 }
