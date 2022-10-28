@@ -1,15 +1,44 @@
 use serde::{Deserialize, Serialize};
 use std::fs::read_to_string;
-use std::fs::OpenOptions;
 use std::path::PathBuf;
 use yaml_rust::YamlLoader;
 
 #[allow(dead_code)]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 enum AvalProtocals {
-    Socks(Socks),
-    HTTP(HTTP),
-    Shadowsocks(Shadowsocks),
+    Socks {
+        r#type: String,
+        tag: String,
+        server: String,
+        server_port: u16,
+        version: u16,
+        username: String,
+        password: String,
+        network: Option<String>,
+        udp_over_tcp: bool,
+    },
+    HTTP {
+        r#type: String,
+        tag: String,
+        server: String,
+        server_port: u16,
+        username: String,
+        password: String,
+        tls: TLS,
+    },
+    Shadowsocks {
+        r#type: String,
+        tag: String,
+        server: String,
+        server_port: u16,
+        method: String,
+        password: String,
+        plugin: String,
+        plugin_opts: String,
+        network: String,
+        udp_over_tcp: bool,
+        multiplex: Option<Multiplex>,
+    },
     //VMess,
     //    Trojan,
     //    Hysteria,
@@ -35,48 +64,9 @@ struct Multiplex {
     max_streams: u16,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-struct Socks {
-    r#type: String,
-    tag: String,
-    server: String,
-    server_port: u16,
-    version: u16,
-    username: String,
-    password: String,
-    network: Option<String>,
-    udp_over_tcp: bool,
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-struct HTTP {
-    r#type: String,
-    tag: String,
-    server: String,
-    server_port: u16,
-    username: String,
-    password: String,
-    tls: TLS,
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-struct Shadowsocks {
-    r#type: String,
-    tag: String,
-    server: String,
-    server_port: u16,
-    method: String,
-    password: String,
-    plugin: String,
-    plugin_opts: String,
-    network: String,
-    udp_over_tcp: bool,
-    multiplex: Option<Multiplex>,
-}
-
-fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Vec<AvalProtocals> {
+fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Vec<serde_json::Value> {
     // single node: yaml_test["proxies"][n]
-    let mut node_list: Vec<AvalProtocals> = vec![];
+    let mut node_list: Vec<serde_json::Value> = vec![];
 
     for (index, single_node) in yaml_data["proxies"].clone().into_iter().enumerate() {
         println!("{:?}", single_node["server"]);
@@ -86,7 +76,7 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Vec<AvalProtocals> {
         let param_int = |eter: &str| single_node[eter].clone().into_i64().unwrap() as u16;
 
         let tobe_node = match single_node["type"].clone().into_string().unwrap().as_str() {
-            "ss" => AvalProtocals::Shadowsocks(Shadowsocks {
+            "ss" => AvalProtocals::Shadowsocks {
                 r#type: "ss".to_string(),
                 tag: format!("ss-{index}"),
                 server: param_str("server"),
@@ -104,9 +94,9 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Vec<AvalProtocals> {
                     min_streams: 0,
                     max_streams: 0,
                 }),
-            }),
+            },
 
-            "socks5" => AvalProtocals::Socks(Socks {
+            "socks5" => AvalProtocals::Socks {
                 r#type: "socks".to_string(),
                 tag: format!("socks-{index}"),
                 server: param_str("server"),
@@ -120,9 +110,9 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Vec<AvalProtocals> {
                     None
                 },
                 udp_over_tcp: false,
-            }),
+            },
 
-            "http" => AvalProtocals::HTTP(HTTP {
+            "http" => AvalProtocals::HTTP {
                 r#type: "http".to_string(),
                 tag: format!("http-{index}"),
                 server: param_str("server"),
@@ -130,12 +120,23 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Vec<AvalProtocals> {
                 username: param_str("username"),
                 password: param_str("password"),
                 tls: TLS {},
-            }),
+            },
             &_ => todo!(),
         };
 
         //        let a = processed_node::new();
-        node_list.push(tobe_node);
+        node_list.push(
+            serde_json::to_value(&tobe_node).unwrap()[match single_node["type"]
+                .clone()
+                .into_string()
+                .unwrap()
+                .as_str()
+            {
+                "ss" => "Shadowsocks",
+                i => i,
+            }]
+            .clone(),
+        );
     }
     node_list
 }
@@ -160,9 +161,13 @@ fn main() {
     //        println!("{:?}", i)
     //    }
 
-    let j = serde_json::to_string(&node_list).unwrap();
+    let j = serde_json::to_string(&serde_json::to_value(&node_list).unwrap()).unwrap();
 
-    println!("{:#}", j)
+    println!("{}", j)
+
+    //   for i in j {
+    //        println!("{:#}", i.get("Shadowsocks").unwrap())
+    //    }
 
     // TODO: write to json
 }
