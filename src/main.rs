@@ -1,8 +1,9 @@
 use clap::{App, Arg};
 use serde::{Deserialize, Serialize};
+use std::error::Error;
 use std::fs::read_to_string;
 use std::path::PathBuf;
-use yaml_rust::YamlLoader;
+use yaml_rust::{Yaml, YamlLoader};
 
 #[allow(dead_code)]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -36,9 +37,9 @@ enum AvalProtocals {
         password: String,
         plugin: String,
         plugin_opts: String,
-        network: String,
+        network: Option<String>,
         udp_over_tcp: bool,
-        multiplex: Option<Multiplex>,
+        //      multiplex: Option<Multiplex>,
     },
     //VMess,
     //    Trojan,
@@ -65,13 +66,12 @@ struct Multiplex {
     max_streams: u16,
 }
 
-fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Vec<serde_json::Value> {
-    // single node: yaml_test["proxies"][n]
+fn convert_to_node_vec(
+    yaml_data: &yaml_rust::Yaml,
+) -> Result<Vec<serde_json::Value>, Box<dyn Error>> {
     let mut node_list: Vec<serde_json::Value> = vec![];
 
     for (index, single_node) in yaml_data["proxies"].clone().into_iter().enumerate() {
-        println!("{:?}", single_node["server"]);
-
         let param_str = |eter: &str| single_node[eter].clone().into_string().unwrap();
 
         let param_int = |eter: &str| single_node[eter].clone().into_i64().unwrap() as u16;
@@ -85,16 +85,19 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Vec<serde_json::Value> {
                 method: param_str("cipher"),
                 password: param_str("password"),
                 plugin: param_str("plugin"),
-                plugin_opts: "".to_string(),
-                network: "".to_string(),
+                plugin_opts: plugin_opts_to_string(single_node["plugin-opts"].clone()),
+                network: match single_node["udp"].clone().into_string() {
+                    Some(_) => None,
+                    _ => Some("tcp".to_string()),
+                },
                 udp_over_tcp: false,
-                multiplex: Some(Multiplex {
-                    enable: false,
-                    protocol: "smux".to_string(),
-                    max_connections: 0,
-                    min_streams: 0,
-                    max_streams: 0,
-                }),
+                //                multiplex: Some(Multiplex {
+                //                    enable: false,
+                //                    protocol: "smux".to_string(),
+                //                    max_connections: 0,
+                //                    min_streams: 0,
+                //                    max_streams: 0,
+                //                }),
             },
 
             "socks5" => AvalProtocals::Socks {
@@ -139,7 +142,7 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Vec<serde_json::Value> {
             .clone(),
         );
     }
-    node_list
+    Ok(node_list)
 }
 
 fn read_yaml(yaml_path: PathBuf) -> yaml_rust::Yaml {
@@ -150,19 +153,34 @@ fn read_yaml(yaml_path: PathBuf) -> yaml_rust::Yaml {
     yaml_data.unwrap()[0].clone()
 }
 
+fn plugin_opts_to_string(opts: Yaml) -> String {
+    format!(
+        "mode={};host={}",
+        opts["mode"].clone().into_string().unwrap(),
+        opts["host"].clone().into_string().unwrap()
+    )
+}
+
 #[allow(unused)]
 fn main() {
     let app = App::new("clash2sing-box")
         .about("convert clash proxy list to sing-box")
         .arg(Arg::with_name("path").required(false))
         .get_matches();
+
     let yaml_path: PathBuf = match app.value_of("path") {
         Some(i) => i.into(),
         _ => PathBuf::from("./config.yaml"),
     };
-    let node_list = convert_to_node_vec(&read_yaml(yaml_path));
 
-    let j = serde_json::to_string(&serde_json::to_value(&node_list).unwrap()).unwrap();
+    let j = serde_json::to_string(
+        &serde_json::to_value(&match convert_to_node_vec(&read_yaml(yaml_path)) {
+            Ok(i) => i,
+            Err(e) => panic!("{}", e),
+        })
+        .unwrap(),
+    )
+    .unwrap();
 
     println!("{}", j)
 
