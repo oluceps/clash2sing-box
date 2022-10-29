@@ -1,3 +1,4 @@
+use clap::{App, Arg};
 use serde::{Deserialize, Serialize};
 use std::fs::read_to_string;
 use std::path::PathBuf;
@@ -141,9 +142,7 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Vec<serde_json::Value> {
     node_list
 }
 
-fn read_yaml() -> yaml_rust::Yaml {
-    let yaml_path = PathBuf::from("./config.yaml");
-
+fn read_yaml(yaml_path: PathBuf) -> yaml_rust::Yaml {
     let yaml_data = YamlLoader::load_from_str(
         &read_to_string(yaml_path).expect("Should have been able to read the file"),
     );
@@ -151,23 +150,21 @@ fn read_yaml() -> yaml_rust::Yaml {
     yaml_data.unwrap()[0].clone()
 }
 
-// fn to_json(node_list: Vec<AvalProtocals>) ->
-
 #[allow(unused)]
 fn main() {
-    let node_list = convert_to_node_vec(&read_yaml());
-
-    //    for i in node_list {
-    //        println!("{:?}", i)
-    //    }
+    let app = App::new("clash2sing-box")
+        .about("convert clash proxy list to sing-box")
+        .arg(Arg::with_name("path").required(false))
+        .get_matches();
+    let yaml_path: PathBuf = match app.value_of("path") {
+        Some(i) => i.into(),
+        _ => PathBuf::from("./config.yaml"),
+    };
+    let node_list = convert_to_node_vec(&read_yaml(yaml_path));
 
     let j = serde_json::to_string(&serde_json::to_value(&node_list).unwrap()).unwrap();
 
     println!("{}", j)
-
-    //   for i in j {
-    //        println!("{:#}", i.get("Shadowsocks").unwrap())
-    //    }
 
     // TODO: write to json
 }
