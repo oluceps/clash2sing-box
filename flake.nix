@@ -25,7 +25,7 @@
           ];
         in
 
-        (naersk.lib.${system}.override {
+        (clash2sing-box.lib.${system}.override {
           cargo = toolchain;
           rustc = toolchain;
         }).buildPackage {
