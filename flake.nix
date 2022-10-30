@@ -5,14 +5,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     flake-utils.url = "github:numtide/flake-utils";
-    clash2sing-box = {
-      url = "github:oluceps/clash2sing-box";
+    naersk = {
+      url = "github:nix-community/naersk";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixpkgs.url = "nixpkgs/nixos-unstable";
   };
 
-  outputs = { self, fenix, flake-utils, clash2sing-box, nixpkgs }:
+  outputs = { self, fenix, flake-utils, naersk, nixpkgs }:
     flake-utils.lib.eachDefaultSystem (system: {
       packages.default =
         let
@@ -25,7 +25,7 @@
           ];
         in
 
-        (clash2sing-box.lib.${system}.override {
+        (naersk.lib.${system}.override {
           cargo = toolchain;
           rustc = toolchain;
         }).buildPackage {
