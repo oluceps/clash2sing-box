@@ -35,8 +35,8 @@ enum AvalProtocals {
         server_port: u16,
         method: String,
         password: String,
-        plugin: String,
-        plugin_opts: String,
+        plugin: Option<String>,
+        plugin_opts: Option<String>,
         network: Option<String>,
         udp_over_tcp: bool,
         //      multiplex: Option<Multiplex>,
@@ -72,7 +72,10 @@ fn convert_to_node_vec(
     let mut node_list: Vec<serde_json::Value> = vec![];
 
     for (index, single_node) in yaml_data["proxies"].clone().into_iter().enumerate() {
-        let param_str = |eter: &str| single_node[eter].clone().into_string().unwrap();
+        let param_str = |eter: &str| match single_node[eter].clone().into_string() {
+            Some(i) => i,
+            None => panic!("{} not exist!", eter),
+        };
 
         let param_int = |eter: &str| single_node[eter].clone().into_i64().unwrap() as u16;
 
@@ -84,8 +87,14 @@ fn convert_to_node_vec(
                 server_port: param_int("port"),
                 method: param_str("cipher"),
                 password: param_str("password"),
-                plugin: param_str("plugin"),
-                plugin_opts: plugin_opts_to_string(single_node["plugin-opts"].clone()),
+                plugin: match single_node["plugin"].clone().into_string() {
+                    Some(_) => Some(param_str("plugin")),
+                    _ => None,
+                },
+                plugin_opts: match single_node["plugin"].clone().into_string() {
+                    Some(_) => Some(plugin_opts_to_string(single_node["plugin-opts"].clone())),
+                    None => None,
+                },
                 network: match single_node["udp"].clone().into_string() {
                     Some(_) => None,
                     _ => Some("tcp".to_string()),
