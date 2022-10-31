@@ -33,6 +33,10 @@
           CARGO_BUILD_TARGET = target;
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER =
             "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/${target}-gcc";
+
+          postInstall = ''
+            mv $out/bin/clash2sing-box $out/bin/clash2sing-box-${target}
+          '';
         };
 
       packages.aarch64-unknown-linux-gnu =
@@ -54,6 +58,10 @@
           CARGO_BUILD_TARGET = target;
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER =
             "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/${target}-gcc";
+
+          postInstall = ''
+            mv $out/bin/clash2sing-box $out/bin/clash2sing-box-${target}
+          '';
         };
     });
 }

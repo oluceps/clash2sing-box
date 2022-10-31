@@ -14,8 +14,8 @@ enum AvalProtocals {
         server: String,
         server_port: u16,
         version: u16,
-        username: String,
-        password: String,
+        username: Option<String>,
+        password: Option<String>,
         network: Option<String>,
         udp_over_tcp: bool,
     },
@@ -24,9 +24,9 @@ enum AvalProtocals {
         tag: String,
         server: String,
         server_port: u16,
-        username: String,
-        password: String,
-        tls: TLS,
+        username: Option<String>,
+        password: Option<String>,
+        tls: Option<TLS>,
     },
     Shadowsocks {
         r#type: String,
@@ -42,11 +42,18 @@ enum AvalProtocals {
         //      multiplex: Option<Multiplex>,
     },
     //VMess,
-    //    Trojan,
+    Trojan {
+        r#type: String,
+        tag: String,
+        server: String,
+        server_port: u16,
+        password: String,
+        network: Option<String>,
+        tls: Option<TLS>,
+    },
     //    Hysteria,
     //    ShadowTLS,
     //    ShadowsocksR,
-    //    VLESS,
     //    Tor,
     //    SSH,
 }
@@ -54,7 +61,22 @@ enum AvalProtocals {
 // TODO: TLS
 #[allow(unused)]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-struct TLS {}
+struct TLS {
+    enable: bool,
+    disable_sni: bool,
+    server_name: Option<String>,
+    insecure: bool,
+    alpn: Option<Vec<String>>,
+    utls: UTLS,
+}
+
+// NOTICE: utls could be use only while enable with_utls build tag
+#[allow(unused)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+struct UTLS {
+    enabled: bool,
+    fingerprint: String,
+}
 
 #[allow(unused)]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -79,18 +101,69 @@ fn convert_to_node_vec(
 
         let param_int = |eter: &str| single_node[eter].clone().into_i64().unwrap() as u16;
 
+        let optional = |eter: &str| match single_node[eter].clone().into_string() {
+            Some(i) => Some(i),
+            _ => None,
+        };
+
+        let named = || {
+            single_node["name"].clone().into_string().unwrap_or(format!(
+                "{}-{}",
+                single_node["type"].clone().into_string().unwrap(),
+                index
+            ))
+        };
+
+        let solve_tls = || {
+            if !single_node["tls"].is_null() {
+                Some(TLS {
+                    enable: if !(single_node["sni"].is_null()
+                        | single_node["alpn"].is_null()
+                        | single_node["skip-cert-verify"].is_null())
+                    {
+                        true
+                    } else {
+                        false
+                    },
+
+                    disable_sni: if single_node["sni"].clone().into_string()
+                        == Some("true".to_string())
+                    {
+                        true
+                    } else {
+                        false
+                    },
+                    server_name: if !single_node["sni"].is_null() {
+                        Some(param_str("sni"))
+                    } else {
+                        None
+                    },
+                    insecure: false, // default false, turn on manual if needed
+                    alpn: if !single_node["alpn"].is_null() {
+                        Some(vec!["h2".to_string()])
+                    } else {
+                        None
+                    },
+
+                    // Default enable utls to prevent potential attack. See https://github.com/net4people/bbs/issues/129
+                    utls: UTLS {
+                        enabled: true,
+                        fingerprint: "chrome".to_string(),
+                    },
+                })
+            } else {
+                None
+            }
+        };
         let tobe_node = match single_node["type"].clone().into_string().unwrap().as_str() {
             "ss" => AvalProtocals::Shadowsocks {
                 r#type: "ss".to_string(),
-                tag: format!("ss-{index}"),
+                tag: named(),
                 server: param_str("server"),
                 server_port: param_int("port"),
                 method: param_str("cipher"),
                 password: param_str("password"),
-                plugin: match single_node["plugin"].clone().into_string() {
-                    Some(_) => Some(param_str("plugin")),
-                    _ => None,
-                },
+                plugin: optional("plugin"),
                 plugin_opts: match single_node["plugin"].clone().into_string() {
                     Some(_) => Some(plugin_opts_to_string(single_node["plugin-opts"].clone())),
                     None => None,
@@ -111,12 +184,12 @@ fn convert_to_node_vec(
 
             "socks5" => AvalProtocals::Socks {
                 r#type: "socks".to_string(),
-                tag: format!("socks-{index}"),
+                tag: named(),
                 server: param_str("server"),
                 server_port: param_int("port"),
                 version: 5,
-                username: param_str("username"),
-                password: param_str("password"),
+                username: optional("username"),
+                password: optional("username"),
                 network: if !single_node["udp"].is_null() {
                     Some("udp".to_string())
                 } else {
@@ -127,18 +200,34 @@ fn convert_to_node_vec(
 
             "http" => AvalProtocals::HTTP {
                 r#type: "http".to_string(),
-                tag: format!("http-{index}"),
+                tag: named(),
                 server: param_str("server"),
                 server_port: param_int("port"),
-                username: param_str("username"),
-                password: param_str("password"),
-                tls: TLS {},
+                username: optional("username"),
+                password: optional("password"),
+                tls: solve_tls(),
             },
+
+            "trojan" => AvalProtocals::Trojan {
+                r#type: "trojan".to_string(),
+                tag: named(),
+                server: param_str("server"),
+                server_port: param_int("port"),
+                password: param_str("password"),
+                network: if !single_node["udp"].is_null() {
+                    Some("udp".to_string())
+                } else {
+                    None
+                },
+                tls: solve_tls(),
+            },
+
             &_ => todo!(),
         };
 
         //        let a = processed_node::new();
         node_list.push(
+            // Need human adjust. Get Object from AttrSet
             serde_json::to_value(&tobe_node).unwrap()[match single_node["type"]
                 .clone()
                 .into_string()
@@ -146,6 +235,8 @@ fn convert_to_node_vec(
                 .as_str()
             {
                 "ss" => "Shadowsocks",
+                "trojan" => "Trojan",
+                "socks5" => "Socks",
                 i => i,
             }]
             .clone(),
