@@ -2,10 +2,10 @@
 
 
 - [x]  Shadowsocks  
-- [ ]  http  
-- [ ]  socks  
+- [x]  http  
+- [x]  socks  
 - [ ]  VMess  
-- [ ]  Trojan  
+- [x]  Trojan  
 - [ ]  Hysteria  
 - [ ]  ShadowTLS  
 - [ ]  ShadowsocksR  
