@@ -14,8 +14,8 @@ enum AvalProtocals {
         server: String,
         server_port: u16,
         version: u16,
-        username: String,
-        password: String,
+        username: Option<String>,
+        password: Option<String>,
         network: Option<String>,
         udp_over_tcp: bool,
     },
@@ -24,9 +24,9 @@ enum AvalProtocals {
         tag: String,
         server: String,
         server_port: u16,
-        username: String,
-        password: String,
-        tls: TLS,
+        username: Option<String>,
+        password: Option<String>,
+        tls: Option<TLS>,
     },
     Shadowsocks {
         r#type: String,
@@ -42,11 +42,18 @@ enum AvalProtocals {
         //      multiplex: Option<Multiplex>,
     },
     //VMess,
-    //    Trojan,
+    Trojan {
+        r#type: String,
+        tag: String,
+        server: String,
+        server_port: u16,
+        password: String,
+        network: Option<String>,
+        tls: Option<TLS>,
+    },
     //    Hysteria,
     //    ShadowTLS,
     //    ShadowsocksR,
-    //    VLESS,
     //    Tor,
     //    SSH,
 }
@@ -79,6 +86,11 @@ fn convert_to_node_vec(
 
         let param_int = |eter: &str| single_node[eter].clone().into_i64().unwrap() as u16;
 
+        let optional = |eter: &str| match single_node[eter].clone().into_string() {
+            Some(i) => Some(i),
+            _ => None,
+        };
+
         let tobe_node = match single_node["type"].clone().into_string().unwrap().as_str() {
             "ss" => AvalProtocals::Shadowsocks {
                 r#type: "ss".to_string(),
@@ -87,10 +99,7 @@ fn convert_to_node_vec(
                 server_port: param_int("port"),
                 method: param_str("cipher"),
                 password: param_str("password"),
-                plugin: match single_node["plugin"].clone().into_string() {
-                    Some(_) => Some(param_str("plugin")),
-                    _ => None,
-                },
+                plugin: optional("plugin"),
                 plugin_opts: match single_node["plugin"].clone().into_string() {
                     Some(_) => Some(plugin_opts_to_string(single_node["plugin-opts"].clone())),
                     None => None,
@@ -115,8 +124,8 @@ fn convert_to_node_vec(
                 server: param_str("server"),
                 server_port: param_int("port"),
                 version: 5,
-                username: param_str("username"),
-                password: param_str("password"),
+                username: optional("username"),
+                password: optional("username"),
                 network: if !single_node["udp"].is_null() {
                     Some("udp".to_string())
                 } else {
@@ -130,10 +139,33 @@ fn convert_to_node_vec(
                 tag: format!("http-{index}"),
                 server: param_str("server"),
                 server_port: param_int("port"),
-                username: param_str("username"),
-                password: param_str("password"),
-                tls: TLS {},
+                username: optional("username"),
+                password: optional("password"),
+                tls: if !single_node["tls"].is_null() {
+                    Some(TLS {})
+                } else {
+                    None
+                },
             },
+
+            "trojan" => AvalProtocals::Trojan {
+                r#type: "trojan".to_string(),
+                tag: format!("trojan-{index}"),
+                server: param_str("server"),
+                server_port: param_int("port"),
+                password: param_str("password"),
+                network: if !single_node["udp"].is_null() {
+                    Some("udp".to_string())
+                } else {
+                    None
+                },
+                tls: if !single_node["tls"].is_null() {
+                    Some(TLS {})
+                } else {
+                    None
+                },
+            },
+
             &_ => todo!(),
         };
 
