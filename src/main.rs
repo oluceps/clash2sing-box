@@ -106,6 +106,14 @@ fn convert_to_node_vec(
             _ => None,
         };
 
+        let named = || {
+            single_node["name"].clone().into_string().unwrap_or(format!(
+                "{}-{}",
+                single_node["type"].clone().into_string().unwrap(),
+                index
+            ))
+        };
+
         let solve_tls = || {
             if !single_node["tls"].is_null() {
                 Some(TLS {
@@ -150,7 +158,7 @@ fn convert_to_node_vec(
         let tobe_node = match single_node["type"].clone().into_string().unwrap().as_str() {
             "ss" => AvalProtocals::Shadowsocks {
                 r#type: "ss".to_string(),
-                tag: format!("ss-{index}"),
+                tag: named(),
                 server: param_str("server"),
                 server_port: param_int("port"),
                 method: param_str("cipher"),
@@ -176,7 +184,7 @@ fn convert_to_node_vec(
 
             "socks5" => AvalProtocals::Socks {
                 r#type: "socks".to_string(),
-                tag: format!("socks-{index}"),
+                tag: named(),
                 server: param_str("server"),
                 server_port: param_int("port"),
                 version: 5,
@@ -192,7 +200,7 @@ fn convert_to_node_vec(
 
             "http" => AvalProtocals::HTTP {
                 r#type: "http".to_string(),
-                tag: format!("http-{index}"),
+                tag: named(),
                 server: param_str("server"),
                 server_port: param_int("port"),
                 username: optional("username"),
@@ -202,7 +210,7 @@ fn convert_to_node_vec(
 
             "trojan" => AvalProtocals::Trojan {
                 r#type: "trojan".to_string(),
-                tag: format!("trojan-{index}"),
+                tag: named(),
                 server: param_str("server"),
                 server_port: param_int("port"),
                 password: param_str("password"),
@@ -219,6 +227,7 @@ fn convert_to_node_vec(
 
         //        let a = processed_node::new();
         node_list.push(
+            // Need human adjust. Get Object from AttrSet
             serde_json::to_value(&tobe_node).unwrap()[match single_node["type"]
                 .clone()
                 .into_string()
@@ -226,6 +235,8 @@ fn convert_to_node_vec(
                 .as_str()
             {
                 "ss" => "Shadowsocks",
+                "trojan" => "Trojan",
+                "socks5" => "Socks",
                 i => i,
             }]
             .clone(),
