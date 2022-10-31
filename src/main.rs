@@ -61,7 +61,22 @@ enum AvalProtocals {
 // TODO: TLS
 #[allow(unused)]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-struct TLS {}
+struct TLS {
+    enable: bool,
+    disable_sni: bool,
+    server_name: Option<String>,
+    insecure: bool,
+    alpn: Option<Vec<String>>,
+    utls: UTLS,
+}
+
+// NOTICE: utls could be use only while enable with_utls build tag
+#[allow(unused)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+struct UTLS {
+    enabled: bool,
+    fingerprint: String,
+}
 
 #[allow(unused)]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -91,6 +106,47 @@ fn convert_to_node_vec(
             _ => None,
         };
 
+        let solve_tls = || {
+            if !single_node["tls"].is_null() {
+                Some(TLS {
+                    enable: if !(single_node["sni"].is_null()
+                        | single_node["alpn"].is_null()
+                        | single_node["skip-cert-verify"].is_null())
+                    {
+                        true
+                    } else {
+                        false
+                    },
+
+                    disable_sni: if single_node["sni"].clone().into_string()
+                        == Some("true".to_string())
+                    {
+                        true
+                    } else {
+                        false
+                    },
+                    server_name: if !single_node["sni"].is_null() {
+                        Some(param_str("sni"))
+                    } else {
+                        None
+                    },
+                    insecure: false, // default false, turn on manual if needed
+                    alpn: if !single_node["alpn"].is_null() {
+                        Some(vec!["h2".to_string()])
+                    } else {
+                        None
+                    },
+
+                    // Default enable utls to prevent potential attack. See https://github.com/net4people/bbs/issues/129
+                    utls: UTLS {
+                        enabled: true,
+                        fingerprint: "chrome".to_string(),
+                    },
+                })
+            } else {
+                None
+            }
+        };
         let tobe_node = match single_node["type"].clone().into_string().unwrap().as_str() {
             "ss" => AvalProtocals::Shadowsocks {
                 r#type: "ss".to_string(),
@@ -141,11 +197,7 @@ fn convert_to_node_vec(
                 server_port: param_int("port"),
                 username: optional("username"),
                 password: optional("password"),
-                tls: if !single_node["tls"].is_null() {
-                    Some(TLS {})
-                } else {
-                    None
-                },
+                tls: solve_tls(),
             },
 
             "trojan" => AvalProtocals::Trojan {
@@ -159,11 +211,7 @@ fn convert_to_node_vec(
                 } else {
                     None
                 },
-                tls: if !single_node["tls"].is_null() {
-                    Some(TLS {})
-                } else {
-                    None
-                },
+                tls: solve_tls(),
             },
 
             &_ => todo!(),
