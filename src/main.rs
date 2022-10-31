@@ -215,9 +215,9 @@ fn convert_to_node_vec(
                 server_port: param_int("port"),
                 password: param_str("password"),
                 network: if !single_node["udp"].is_null() {
-                    Some("udp".to_string())
-                } else {
                     None
+                } else {
+                    Some("tcp".to_string())
                 },
                 tls: solve_tls(),
             },
