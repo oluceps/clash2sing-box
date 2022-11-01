@@ -51,14 +51,29 @@ enum AvalProtocals {
         network: Option<String>,
         tls: Option<TLS>,
     },
-    //    Hysteria,
+    Hysteria {
+        r#type: String,
+        tag: String,
+        server: String,
+        server_port: u16,
+        up: Option<String>,
+        up_mbps: Option<u32>,
+        down: Option<String>,
+        down_mbps: Option<u32>,
+        obfs: Option<String>,
+        auth: Option<String>,
+        auth_str: Option<String>,
+        recv_window_conn: Option<u32>,
+        recv_window: Option<u32>,
+        disable_mtu_discovery: Option<bool>,
+        tls: Option<TLS>,
+    },
     //    ShadowTLS,
     //    ShadowsocksR,
     //    Tor,
     //    SSH,
 }
 
-// TODO: TLS
 #[allow(unused)]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 struct TLS {
@@ -68,6 +83,8 @@ struct TLS {
     insecure: bool,
     alpn: Option<Vec<String>>,
     utls: UTLS,
+    certificate_path: Option<String>,
+    certificate: Option<String>,
 }
 
 // NOTICE: utls could be use only while enable with_utls build tag
@@ -150,6 +167,17 @@ fn convert_to_node_vec(
                         enabled: true,
                         fingerprint: "chrome".to_string(),
                     },
+
+                    certificate_path: if let Some(i) = single_node["ca"].clone().into_string() {
+                        Some(i)
+                    } else {
+                        None
+                    },
+                    certificate: if let Some(i) = single_node["ca_str"].clone().into_string() {
+                        Some(i)
+                    } else {
+                        None
+                    },
                 })
             } else {
                 None
@@ -222,6 +250,30 @@ fn convert_to_node_vec(
                 tls: solve_tls(),
             },
 
+            "hysteria" => AvalProtocals::Hysteria {
+                r#type: "hysteria".to_string(),
+                tag: named(),
+                server: param_str("server"),
+                server_port: param_int("port"),
+                up: single_node["up"].clone().into_string(),
+                up_mbps: None,
+                down: single_node["down"].clone().into_string(),
+                down_mbps: None,
+                obfs: single_node["obfs"].clone().into_string(),
+                auth: None,
+                auth_str: single_node["auth_str"].clone().into_string(),
+                recv_window_conn: Some(param_int("recv_window_conn").into()),
+                recv_window: Some(param_int("recv_window").into()),
+                disable_mtu_discovery: if single_node["sni"].clone().into_string()
+                    == Some("true".to_string())
+                {
+                    Some(true)
+                } else {
+                    None
+                },
+                tls: solve_tls(),
+            },
+
             &_ => todo!(),
         };
 
@@ -237,7 +289,8 @@ fn convert_to_node_vec(
                 "ss" => "Shadowsocks",
                 "trojan" => "Trojan",
                 "socks5" => "Socks",
-                i => i,
+                "hysteria" => "Hysteria",
+                &_ => !todo!(),
             }]
             .clone(),
         );
