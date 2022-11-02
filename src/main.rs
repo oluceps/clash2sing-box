@@ -1,4 +1,6 @@
 use clap::Parser;
+use futures::executor::block_on;
+use reqwest::header::USER_AGENT;
 use serde::Serialize;
 use std::error::Error;
 use std::fs::read_to_string;
@@ -87,6 +89,26 @@ enum AvalProtocals {
         recv_window: Option<u32>,
         #[serde(skip_serializing_if = "Option::is_none")]
         disable_mtu_discovery: Option<bool>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        tls: Option<TLS>,
+    },
+
+    VMess {
+        r#type: String,
+        tag: String,
+        server: String,
+        server_port: u16,
+        uuid: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        security: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        alter_id: Option<u16>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        global_padding: Option<bool>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        authenticated_length: Option<bool>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        network: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
         tls: Option<TLS>,
     },
@@ -300,6 +322,24 @@ fn convert_to_node_vec(
                 tls: solve_tls(),
             },
 
+            "vmess" => AvalProtocals::VMess {
+                r#type: "vmess".to_string(),
+                tag: named(),
+                server: param_str("server"),
+                server_port: param_int("port"),
+                uuid: param_str("uuid"),
+                security: None,
+                alter_id: param_int("alertId").into(),
+                global_padding: None,
+                authenticated_length: None,
+                network: if !single_node["udp"].is_null() {
+                    None
+                } else {
+                    Some("tcp".to_string())
+                },
+                tls: solve_tls(),
+            },
+
             &_ => todo!(),
         };
 
@@ -315,6 +355,7 @@ fn convert_to_node_vec(
                 "trojan" => "Trojan",
                 "socks5" => "Socks",
                 "hysteria" => "Hysteria",
+                "vmess" => "VMess",
                 i => i,
             }]
             .clone(),
@@ -339,6 +380,17 @@ fn plugin_opts_to_string(opts: Yaml) -> String {
     )
 }
 
+async fn get_subscribe(sublink: &str) -> Result<String, reqwest::Error>  {
+    let client = reqwest::Client::new();
+    let res = client
+        .get(sublink)
+        .header(USER_AGENT, "clash")
+        .send()
+        .await?;
+    block_on(res.text())
+ 
+}
+
 #[derive(Parser, Debug)]
 #[command(author, version)]
 struct Args {
@@ -355,9 +407,12 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    let yaml_path: PathBuf = match args.path {
-        Some(i) => PathBuf::from(i),
-        None => PathBuf::from("./config.yaml".to_string()),
+    let yaml_path: PathBuf = match args.subscribe {
+        Some(i) => i.into(),
+        None => match args.path {
+            Some(i) => PathBuf::from(i),
+            None => PathBuf::from("./config.yaml".to_string()),
+        },
     };
     let j = serde_json::to_string(
         &serde_json::to_value(&match convert_to_node_vec(&read_yaml(yaml_path)) {
