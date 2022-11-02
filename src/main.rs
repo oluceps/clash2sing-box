@@ -1,4 +1,4 @@
-use clap::{App, Arg};
+use clap::Parser;
 use serde::Serialize;
 use std::error::Error;
 use std::fs::read_to_string;
@@ -305,7 +305,6 @@ fn convert_to_node_vec(
 
         //        let a = processed_node::new();
         node_list.push(
-            // Need human adjust. Get Object from AttrSet
             serde_json::to_value(&tobe_node).unwrap()[match single_node["type"]
                 .clone()
                 .into_string()
@@ -340,18 +339,26 @@ fn plugin_opts_to_string(opts: Yaml) -> String {
     )
 }
 
+#[derive(Parser, Debug)]
+#[command(author, version)]
+struct Args {
+    #[arg(short, long)]
+    path: Option<String>,
+
+    #[arg(short, long)]
+    string: Option<String>,
+
+    #[arg(long)]
+    subscribe: Option<String>,
+}
 #[allow(unused)]
 fn main() {
-    let app = App::new("clash2sing-box")
-        .about("convert clash proxy list to sing-box")
-        .arg(Arg::with_name("path").required(false))
-        .get_matches();
+    let args = Args::parse();
 
-    let yaml_path: PathBuf = match app.value_of("path") {
-        Some(i) => i.into(),
-        _ => PathBuf::from("./config.yaml"),
+    let yaml_path: PathBuf = match args.path {
+        Some(i) => PathBuf::from(i),
+        None => PathBuf::from("./config.yaml".to_string()),
     };
-
     let j = serde_json::to_string(
         &serde_json::to_value(&match convert_to_node_vec(&read_yaml(yaml_path)) {
             Ok(i) => i,
