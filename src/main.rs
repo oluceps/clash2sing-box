@@ -1,12 +1,12 @@
 use clap::{App, Arg};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::error::Error;
 use std::fs::read_to_string;
 use std::path::PathBuf;
 use yaml_rust::{Yaml, YamlLoader};
 
 #[allow(dead_code)]
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 enum AvalProtocals {
     Socks {
         r#type: String,
@@ -14,8 +14,11 @@ enum AvalProtocals {
         server: String,
         server_port: u16,
         version: u16,
+        #[serde(skip_serializing_if = "Option::is_none")]
         username: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         password: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         network: Option<String>,
         udp_over_tcp: bool,
     },
@@ -24,8 +27,11 @@ enum AvalProtocals {
         tag: String,
         server: String,
         server_port: u16,
+        #[serde(skip_serializing_if = "Option::is_none")]
         username: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         password: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         tls: Option<TLS>,
     },
     Shadowsocks {
@@ -35,8 +41,11 @@ enum AvalProtocals {
         server_port: u16,
         method: String,
         password: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
         plugin: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         plugin_opts: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         network: Option<String>,
         udp_over_tcp: bool,
         //      multiplex: Option<Multiplex>,
@@ -48,7 +57,9 @@ enum AvalProtocals {
         server: String,
         server_port: u16,
         password: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
         network: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         tls: Option<TLS>,
     },
     Hysteria {
@@ -56,16 +67,27 @@ enum AvalProtocals {
         tag: String,
         server: String,
         server_port: u16,
+        #[serde(skip_serializing_if = "Option::is_none")]
         up: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         up_mbps: Option<u32>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         down: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         down_mbps: Option<u32>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         obfs: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         auth: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         auth_str: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         recv_window_conn: Option<u32>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         recv_window: Option<u32>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         disable_mtu_discovery: Option<bool>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         tls: Option<TLS>,
     },
     //    ShadowTLS,
@@ -75,28 +97,32 @@ enum AvalProtocals {
 }
 
 #[allow(unused)]
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 struct TLS {
     enable: bool,
     disable_sni: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     server_name: Option<String>,
     insecure: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     alpn: Option<Vec<String>>,
     utls: UTLS,
+    #[serde(skip_serializing_if = "Option::is_none")]
     certificate_path: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     certificate: Option<String>,
 }
 
 // NOTICE: utls could be use only while enable with_utls build tag
 #[allow(unused)]
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 struct UTLS {
     enabled: bool,
     fingerprint: String,
 }
 
 #[allow(unused)]
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 struct Multiplex {
     enable: bool,
     protocol: String,
@@ -290,7 +316,7 @@ fn convert_to_node_vec(
                 "trojan" => "Trojan",
                 "socks5" => "Socks",
                 "hysteria" => "Hysteria",
-                &_ => !todo!(),
+                i => i,
             }]
             .clone(),
         );
