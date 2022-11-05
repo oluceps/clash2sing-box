@@ -22,3 +22,9 @@ Options:
   -h, --help                   Print help information
   -V, --version                Print version information
 ```
+
+### to parse clash subscribe link  
+
+```console  
+./clash2sing-box --subscribe "<link>" | jq .  
+```
