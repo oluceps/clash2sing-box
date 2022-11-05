@@ -198,7 +198,7 @@ fn convert_to_node_vec(
                     } else {
                         false
                     },
-                    server_name: if !single_node["sni"].is_null() {
+                    server_name: if single_node["sni"].clone().into_string().is_some() {
                         Some(param_str("sni"))
                     } else {
                         None
@@ -329,7 +329,11 @@ fn convert_to_node_vec(
                 server_port: param_int("port"),
                 uuid: param_str("uuid"),
                 security: None,
-                alter_id: param_int("alertId").into(),
+                alter_id: if single_node["alertId"].clone().into_string().is_some() {
+                    Some(param_int("alertId").into())
+                } else {
+                    Some(0)
+                },
                 global_padding: None,
                 authenticated_length: None,
                 network: if !single_node["udp"].is_null() {
