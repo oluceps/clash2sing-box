@@ -380,7 +380,7 @@ fn plugin_opts_to_string(opts: Yaml) -> String {
     )
 }
 
-async fn get_subscribe(sublink: &str) -> Result<String, reqwest::Error>  {
+async fn get_subscribe(sublink: &str) -> Result<String, reqwest::Error> {
     let client = reqwest::Client::new();
     let res = client
         .get(sublink)
@@ -388,7 +388,6 @@ async fn get_subscribe(sublink: &str) -> Result<String, reqwest::Error>  {
         .send()
         .await?;
     block_on(res.text())
- 
 }
 
 #[derive(Parser, Debug)]
@@ -403,19 +402,33 @@ struct Args {
     #[arg(long)]
     subscribe: Option<String>,
 }
-#[allow(unused)]
-fn main() {
+#[tokio::main]
+async fn main() {
     let args = Args::parse();
 
-    let yaml_path: PathBuf = match args.subscribe {
-        Some(i) => i.into(),
+    let yaml_path: Option<PathBuf> = match args.subscribe {
+        Some(_) => None,
         None => match args.path {
-            Some(i) => PathBuf::from(i),
-            None => PathBuf::from("./config.yaml".to_string()),
+            Some(i) => Some(PathBuf::from(i)),
+            None => Some(PathBuf::from("./config.yaml".to_string())),
         },
     };
+
     let j = serde_json::to_string(
-        &serde_json::to_value(&match convert_to_node_vec(&read_yaml(yaml_path)) {
+        // recieve PathBuf or String
+        // wait.. what?
+        // TODO: Refactor read_yaml func to fit two diff type
+        &serde_json::to_value(&match convert_to_node_vec(&match yaml_path {
+            Some(i) => read_yaml(i),
+            None => YamlLoader::load_from_str(
+                get_subscribe(&args.subscribe.unwrap())
+                    .await
+                    .unwrap()
+                    .as_str(),
+            )
+            .unwrap()[0]
+                .clone(),
+        }) {
             Ok(i) => i,
             Err(e) => panic!("{}", e),
         })
