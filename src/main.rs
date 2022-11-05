@@ -391,7 +391,7 @@ async fn get_subscribe(sublink: &str) -> Result<String, reqwest::Error> {
 }
 
 #[derive(Parser, Debug)]
-#[command(author, version)]
+#[command(author, version, about, long_about = None)]
 struct Args {
     #[arg(short, long)]
     path: Option<String>,
@@ -415,9 +415,6 @@ async fn main() {
     };
 
     let j = serde_json::to_string(
-        // recieve PathBuf or String
-        // wait.. what?
-        // TODO: Refactor read_yaml func to fit two diff type
         &serde_json::to_value(&match convert_to_node_vec(&match yaml_path {
             Some(i) => read_yaml(i),
             None => YamlLoader::load_from_str(
