@@ -12,7 +12,9 @@
 
 ```console  
 ./clash2sing-box --help
+```
 
+```
 Usage: clash2sing-box [OPTIONS]
 
 Options:
