@@ -158,53 +158,53 @@ fn convert_to_node_vec(
 ) -> Result<Vec<serde_json::Value>, Box<dyn Error>> {
     let mut node_list: Vec<serde_json::Value> = vec![];
 
-    for (index, single_node) in yaml_data["proxies"].clone().into_iter().enumerate() {
-        let param_str = |eter: &str| match single_node[eter].clone().into_string() {
+    for (index, per_node) in yaml_data["proxies"].clone().into_iter().enumerate() {
+        let param_str = |eter: &str| match per_node[eter].clone().into_string() {
             Some(i) => i,
             None => panic!("{} not exist!", eter),
         };
 
-        let param_int = |eter: &str| single_node[eter].clone().into_i64().unwrap() as u16;
+        let param_int = |eter: &str| per_node[eter].clone().into_i64().unwrap() as u16;
 
-        let optional = |eter: &str| match single_node[eter].clone().into_string() {
+        let optional = |eter: &str| match per_node[eter].clone().into_string() {
             Some(i) => Some(i),
             _ => None,
         };
 
         let named = || {
-            single_node["name"].clone().into_string().unwrap_or(format!(
+            per_node["name"].clone().into_string().unwrap_or(format!(
                 "{}-{}",
-                single_node["type"].clone().into_string().unwrap(),
+                per_node["type"].clone().into_string().unwrap(),
                 index
             ))
         };
 
         let solve_tls = || {
-            if !single_node["tls"].is_null() {
+            if !per_node["tls"].is_null() {
                 Some(TLS {
-                    enable: if !(single_node["sni"].is_null()
-                        | single_node["alpn"].is_null()
-                        | single_node["skip-cert-verify"].is_null())
+                    enable: if !(per_node["sni"].is_null()
+                        | per_node["alpn"].is_null()
+                        | per_node["skip-cert-verify"].is_null())
                     {
                         true
                     } else {
                         false
                     },
 
-                    disable_sni: if single_node["sni"].clone().into_string()
+                    disable_sni: if per_node["sni"].clone().into_string()
                         == Some("true".to_string())
                     {
                         true
                     } else {
                         false
                     },
-                    server_name: if single_node["sni"].clone().into_string().is_some() {
+                    server_name: if per_node["sni"].clone().into_string().is_some() {
                         Some(param_str("sni"))
                     } else {
                         None
                     },
                     insecure: false, // default false, turn on manual if needed
-                    alpn: if !single_node["alpn"].is_null() {
+                    alpn: if !per_node["alpn"].is_null() {
                         Some(vec!["h2".to_string()])
                     } else {
                         None
@@ -216,12 +216,12 @@ fn convert_to_node_vec(
                         fingerprint: "chrome".to_string(),
                     },
 
-                    certificate_path: if let Some(i) = single_node["ca"].clone().into_string() {
+                    certificate_path: if let Some(i) = per_node["ca"].clone().into_string() {
                         Some(i)
                     } else {
                         None
                     },
-                    certificate: if let Some(i) = single_node["ca_str"].clone().into_string() {
+                    certificate: if let Some(i) = per_node["ca_str"].clone().into_string() {
                         Some(i)
                     } else {
                         None
@@ -231,7 +231,7 @@ fn convert_to_node_vec(
                 None
             }
         };
-        let tobe_node = match single_node["type"].clone().into_string().unwrap().as_str() {
+        let tobe_node = match per_node["type"].clone().into_string().unwrap().as_str() {
             "ss" => AvalProtocals::Shadowsocks {
                 r#type: "ss".to_string(),
                 tag: named(),
@@ -240,11 +240,11 @@ fn convert_to_node_vec(
                 method: param_str("cipher"),
                 password: param_str("password"),
                 plugin: optional("plugin"),
-                plugin_opts: match single_node["plugin"].clone().into_string() {
-                    Some(_) => Some(plugin_opts_to_string(single_node["plugin-opts"].clone())),
+                plugin_opts: match per_node["plugin"].clone().into_string() {
+                    Some(_) => Some(plugin_opts_to_string(per_node["plugin-opts"].clone())),
                     None => None,
                 },
-                network: match single_node["udp"].clone().into_string() {
+                network: match per_node["udp"].clone().into_string() {
                     Some(_) => None,
                     _ => Some("tcp".to_string()),
                 },
@@ -266,7 +266,7 @@ fn convert_to_node_vec(
                 version: 5,
                 username: optional("username"),
                 password: optional("username"),
-                network: if !single_node["udp"].is_null() {
+                network: if !per_node["udp"].is_null() {
                     Some("udp".to_string())
                 } else {
                     None
@@ -290,7 +290,7 @@ fn convert_to_node_vec(
                 server: param_str("server"),
                 server_port: param_int("port"),
                 password: param_str("password"),
-                network: if !single_node["udp"].is_null() {
+                network: if !per_node["udp"].is_null() {
                     None
                 } else {
                     Some("tcp".to_string())
@@ -303,16 +303,16 @@ fn convert_to_node_vec(
                 tag: named(),
                 server: param_str("server"),
                 server_port: param_int("port"),
-                up: single_node["up"].clone().into_string(),
+                up: per_node["up"].clone().into_string(),
                 up_mbps: None,
-                down: single_node["down"].clone().into_string(),
+                down: per_node["down"].clone().into_string(),
                 down_mbps: None,
-                obfs: single_node["obfs"].clone().into_string(),
+                obfs: per_node["obfs"].clone().into_string(),
                 auth: None,
-                auth_str: single_node["auth_str"].clone().into_string(),
+                auth_str: per_node["auth_str"].clone().into_string(),
                 recv_window_conn: Some(param_int("recv_window_conn").into()),
                 recv_window: Some(param_int("recv_window").into()),
-                disable_mtu_discovery: if single_node["sni"].clone().into_string()
+                disable_mtu_discovery: if per_node["sni"].clone().into_string()
                     == Some("true".to_string())
                 {
                     Some(true)
@@ -329,14 +329,14 @@ fn convert_to_node_vec(
                 server_port: param_int("port"),
                 uuid: param_str("uuid"),
                 security: None,
-                alter_id: if single_node["alertId"].clone().into_string().is_some() {
+                alter_id: if per_node["alertId"].clone().into_string().is_some() {
                     Some(param_int("alertId").into())
                 } else {
                     Some(0)
                 },
                 global_padding: None,
                 authenticated_length: None,
-                network: if !single_node["udp"].is_null() {
+                network: if !per_node["udp"].is_null() {
                     None
                 } else {
                     Some("tcp".to_string())
@@ -349,7 +349,7 @@ fn convert_to_node_vec(
 
         //        let a = processed_node::new();
         node_list.push(
-            serde_json::to_value(&tobe_node).unwrap()[match single_node["type"]
+            serde_json::to_value(&tobe_node).unwrap()[match per_node["type"]
                 .clone()
                 .into_string()
                 .unwrap()
