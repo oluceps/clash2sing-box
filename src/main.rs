@@ -2,9 +2,9 @@ use clap::Parser;
 use futures::executor::block_on;
 use reqwest::header::USER_AGENT;
 use serde::Serialize;
-use std::error::Error;
 use std::fs::read_to_string;
 use std::path::PathBuf;
+use std::{error::Error, fs};
 use yaml_rust::{Yaml, YamlLoader};
 
 #[allow(dead_code)]
@@ -155,8 +155,9 @@ struct Multiplex {
 
 fn convert_to_node_vec(
     yaml_data: &yaml_rust::Yaml,
-) -> Result<Vec<serde_json::Value>, Box<dyn Error>> {
+) -> Result<(Vec<serde_json::Value>, Vec<String>), Box<dyn Error>> {
     let mut node_list: Vec<serde_json::Value> = vec![];
+    let mut nodename_list: Vec<String> = vec![];
 
     for (index, per_node) in yaml_data["proxies"].clone().into_iter().enumerate() {
         let param_str = |eter: &str| match per_node[eter].clone().into_string() {
@@ -164,11 +165,13 @@ fn convert_to_node_vec(
             None => panic!("{} not exist!", eter),
         };
 
-        let param_int =
-            |eter: &str| match per_node[eter].clone().into_string().unwrap().parse::<u16>() {
+        let param_int = |eter: &str| match per_node[eter].clone().as_i64() {
+            Some(i) => i as u16,
+            None => match per_node[eter].clone().into_string().unwrap().parse::<u16>() {
                 Ok(i) => i,
                 Err(_) => panic!("error on parsing {eter}"),
-            };
+            },
+        };
 
         let optional = |eter: &str| match per_node[eter].clone().into_string() {
             Some(i) => Some(i),
@@ -183,7 +186,7 @@ fn convert_to_node_vec(
             ))
         };
 
-        let solve_tls = || {
+        let parse_tls = || {
             if !per_node["tls"].is_null() {
                 Some(TLS {
                     enable: if !(per_node["sni"].is_null()
@@ -285,7 +288,7 @@ fn convert_to_node_vec(
                 server_port: param_int("port"),
                 username: optional("username"),
                 password: optional("password"),
-                tls: solve_tls(),
+                tls: parse_tls(),
             },
 
             "trojan" => AvalProtocals::Trojan {
@@ -299,7 +302,7 @@ fn convert_to_node_vec(
                 } else {
                     Some("tcp".to_string())
                 },
-                tls: solve_tls(),
+                tls: parse_tls(),
             },
 
             "hysteria" => AvalProtocals::Hysteria {
@@ -323,7 +326,7 @@ fn convert_to_node_vec(
                 } else {
                     None
                 },
-                tls: solve_tls(),
+                tls: parse_tls(),
             },
 
             "vmess" => AvalProtocals::VMess {
@@ -345,7 +348,7 @@ fn convert_to_node_vec(
                 } else {
                     Some("tcp".to_string())
                 },
-                tls: solve_tls(),
+                tls: parse_tls(),
             },
 
             &_ => todo!(),
@@ -368,16 +371,20 @@ fn convert_to_node_vec(
             }]
             .clone(),
         );
+        nodename_list.push(per_node["name"].clone().into_string().unwrap())
     }
-    Ok(node_list)
+    Ok((node_list, nodename_list))
 }
 
 fn read_yaml(yaml_path: PathBuf) -> yaml_rust::Yaml {
     let yaml_data = YamlLoader::load_from_str(
-        &read_to_string(yaml_path).expect("Should have been able to read the file"),
+        &read_to_string(yaml_path).expect("offer the path or subscribe link. see --help "),
     );
 
-    yaml_data.unwrap()[0].clone()
+    match yaml_data {
+        Ok(i) => i[0].clone(),
+        Err(e) => panic!("{e}"),
+    }
 }
 
 fn plugin_opts_to_string(opts: Yaml) -> String {
@@ -405,10 +412,13 @@ struct Args {
     path: Option<String>,
 
     #[arg(short, long)]
-    string: Option<String>,
+    content: Option<String>,
 
-    #[arg(long)]
+    #[arg(short, long)]
     subscribe: Option<String>,
+
+    #[arg(short, long)]
+    output: Option<String>,
 }
 #[tokio::main]
 async fn main() {
@@ -422,26 +432,34 @@ async fn main() {
         },
     };
 
+    let node_vec = convert_to_node_vec(&match yaml_path {
+        Some(i) => read_yaml(i),
+        None => YamlLoader::load_from_str(
+            get_subscribe(&args.subscribe.unwrap())
+                .await
+                .unwrap()
+                .as_str(),
+        )
+        .unwrap()[0]
+            .clone(),
+    });
+
+    if let Ok(ref i) = node_vec {
+        println!("node name list:\n{:?}\n\n\n", i.1);
+    };
+
     let j = serde_json::to_string(
-        &serde_json::to_value(&match convert_to_node_vec(&match yaml_path {
-            Some(i) => read_yaml(i),
-            None => YamlLoader::load_from_str(
-                get_subscribe(&args.subscribe.unwrap())
-                    .await
-                    .unwrap()
-                    .as_str(),
-            )
-            .unwrap()[0]
-                .clone(),
-        }) {
-            Ok(i) => i,
+        &serde_json::to_value(&match node_vec {
+            Ok(i) => i.0,
             Err(e) => panic!("{}", e),
         })
         .unwrap(),
     )
     .unwrap();
 
-    println!("{}", j)
+    println!("{}", j);
 
-    // TODO: write to json
+    if let Some(i) = args.output {
+        fs::write(&i, j.as_bytes()).unwrap();
+    }
 }
