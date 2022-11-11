@@ -121,7 +121,7 @@ enum AvalProtocals {
 #[allow(unused)]
 #[derive(Debug, Serialize)]
 struct TLS {
-    enable: bool,
+    enabled: bool,
     disable_sni: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     server_name: Option<String>,
@@ -174,7 +174,11 @@ fn convert_to_node_vec(
         };
 
         let optional = |eter: &str| match per_node[eter].clone().into_string() {
-            Some(i) => Some(i),
+            Some(i) => match i.as_str() {
+                "obfs" => Some("obfs-local".to_string()),
+                "v2ray-plugin" => Some("v2ray-plugin".to_string()),
+                &_ => None,
+            },
             _ => None,
         };
 
@@ -189,7 +193,7 @@ fn convert_to_node_vec(
         let parse_tls = || {
             if !per_node["tls"].is_null() {
                 Some(TLS {
-                    enable: if !(per_node["sni"].is_null()
+                    enabled: if !(per_node["sni"].is_null()
                         | per_node["alpn"].is_null()
                         | per_node["skip-cert-verify"].is_null())
                     {
@@ -240,7 +244,7 @@ fn convert_to_node_vec(
         };
         let tobe_node = match per_node["type"].clone().into_string().unwrap().as_str() {
             "ss" => AvalProtocals::Shadowsocks {
-                r#type: "ss".to_string(),
+                r#type: "shadowsocks".to_string(),
                 tag: named(),
                 server: param_str("server"),
                 server_port: param_int("port"),
