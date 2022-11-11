@@ -17,17 +17,19 @@
 ### to parse clash `config.yaml`  
 
 ```console
-./clash2sing-box --path <PATH_TO_config.yaml>
+./clash2sing-box --path <PATH_TO_config.yaml> | jq .
 ```   
 
 
 ```
+> ./clash2sing-box --help
 Usage: clash2sing-box [OPTIONS]
 
 Options:
   -p, --path <PATH>
-  -s, --string <STRING>
-      --subscribe <SUBSCRIBE>
+  -c, --content <CONTENT>
+  -s, --subscribe <SUBSCRIBE>
+  -o, --output <OUTPUT>
   -h, --help                   Print help information
   -V, --version                Print version information
 ```
