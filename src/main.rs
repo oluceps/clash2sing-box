@@ -208,7 +208,7 @@ fn convert_to_node_vec(
                         None
                     },
                     insecure: false, // default false, turn on manual if needed
-                    alpn: if !per_node["alpn"].is_null() {
+                    alpn: if per_node["alpn"].clone().into_string().is_some() {
                         Some(vec!["h2".to_string()])
                     } else {
                         None
