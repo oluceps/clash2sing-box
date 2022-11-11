@@ -8,11 +8,18 @@
 - [ ]  ShadowsocksR     
 - [ ]  ~~VLESS~~          `VLESS` had been abandoned officially. See [detail](https://www.v2fly.org/v5/config/proxy/vless.html)  
 
-
+### to parse clash subscribe link  
 
 ```console  
-./clash2sing-box --help
+./clash2sing-box --subscribe "<link>" | jq .  
 ```
+
+### to parse clash `config.yaml`  
+
+```console
+./clash2sing-box --path <PATH_TO_config.yaml>
+```   
+
 
 ```
 Usage: clash2sing-box [OPTIONS]
@@ -25,8 +32,3 @@ Options:
   -V, --version                Print version information
 ```
 
-### to parse clash subscribe link  
-
-```console  
-./clash2sing-box --subscribe "<link>" | jq .  
-```
