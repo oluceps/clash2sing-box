@@ -183,7 +183,7 @@ fn convert_to_node_vec(
             ))
         };
 
-        let solve_tls = || {
+        let parse_tls = || {
             if !per_node["tls"].is_null() {
                 Some(TLS {
                     enable: if !(per_node["sni"].is_null()
@@ -285,7 +285,7 @@ fn convert_to_node_vec(
                 server_port: param_int("port"),
                 username: optional("username"),
                 password: optional("password"),
-                tls: solve_tls(),
+                tls: parse_tls(),
             },
 
             "trojan" => AvalProtocals::Trojan {
@@ -299,7 +299,7 @@ fn convert_to_node_vec(
                 } else {
                     Some("tcp".to_string())
                 },
-                tls: solve_tls(),
+                tls: parse_tls(),
             },
 
             "hysteria" => AvalProtocals::Hysteria {
@@ -323,7 +323,7 @@ fn convert_to_node_vec(
                 } else {
                     None
                 },
-                tls: solve_tls(),
+                tls: parse_tls(),
             },
 
             "vmess" => AvalProtocals::VMess {
@@ -345,7 +345,7 @@ fn convert_to_node_vec(
                 } else {
                     Some("tcp".to_string())
                 },
-                tls: solve_tls(),
+                tls: parse_tls(),
             },
 
             &_ => todo!(),
