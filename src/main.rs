@@ -164,7 +164,11 @@ fn convert_to_node_vec(
             None => panic!("{} not exist!", eter),
         };
 
-        let param_int = |eter: &str| per_node[eter].clone().into_i64().unwrap() as u16;
+        let param_int =
+            |eter: &str| match per_node[eter].clone().into_string().unwrap().parse::<u16>() {
+                Ok(i) => i,
+                Err(_) => panic!("error on parsing {eter}"),
+            };
 
         let optional = |eter: &str| match per_node[eter].clone().into_string() {
             Some(i) => Some(i),
