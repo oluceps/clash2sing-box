@@ -11,13 +11,13 @@
 ### to parse clash subscribe link  
 
 ```console  
-./clash2sing-box --subscribe "<link>" | jq .  
+./clash2sing-box --subscribe "<link>"  
 ```
 
 ### to parse clash `config.yaml`  
 
 ```console
-./clash2sing-box --path <PATH_TO_config.yaml> | jq .
+./clash2sing-box --path <PATH_TO_config.yaml>  
 ```   
 
 
