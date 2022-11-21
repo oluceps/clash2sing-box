@@ -1,5 +1,4 @@
 use clap::Parser;
-use futures::executor::block_on;
 use reqwest::header::USER_AGENT;
 use serde::Serialize;
 use std::fs::read_to_string;
@@ -399,14 +398,10 @@ fn plugin_opts_to_string(opts: Yaml) -> String {
     )
 }
 
-async fn get_subscribe(sublink: &str) -> Result<String, reqwest::Error> {
-    let client = reqwest::Client::new();
-    let res = client
-        .get(sublink)
-        .header(USER_AGENT, "clash")
-        .send()
-        .await?;
-    block_on(res.text())
+fn get_subscribe(sublink: &str) -> Result<String, reqwest::Error> {
+    let client = reqwest::blocking::Client::new();
+    let res = client.get(sublink).header(USER_AGENT, "clash").send()?;
+    res.text()
 }
 
 #[derive(Parser, Debug)]
@@ -424,8 +419,7 @@ struct Args {
     #[arg(short, long)]
     output: Option<String>,
 }
-#[tokio::main]
-async fn main() {
+fn main() {
     let args = Args::parse();
 
     let yaml_path: Option<PathBuf> = match args.subscribe {
@@ -438,14 +432,11 @@ async fn main() {
 
     let node_vec = convert_to_node_vec(&match yaml_path {
         Some(i) => read_yaml(i),
-        None => YamlLoader::load_from_str(
-            get_subscribe(&args.subscribe.unwrap())
-                .await
-                .unwrap()
-                .as_str(),
-        )
-        .unwrap()[0]
-            .clone(),
+        None => {
+            YamlLoader::load_from_str(get_subscribe(&args.subscribe.unwrap()).unwrap().as_str())
+                .unwrap()[0]
+                .clone()
+        }
     });
 
     if let Ok(ref i) = node_vec {
