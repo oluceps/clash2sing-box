@@ -1,13 +1,13 @@
 mod node;
+use crate::node::*;
 use clap::Parser;
 use futures::executor::block_on;
 use reqwest::header::USER_AGENT;
 use std::fs::read_to_string;
 use std::path::PathBuf;
+use std::rc::Rc;
 use std::{error::Error, fs};
 use yaml_rust::{Yaml, YamlLoader};
-
-use crate::node::*;
 
 fn convert_to_node_vec(
     yaml_data: &yaml_rust::Yaml,
@@ -16,21 +16,26 @@ fn convert_to_node_vec(
     let mut nodename_list: Vec<String> = vec![];
 
     for (index, per_node) in yaml_data["proxies"].clone().into_iter().enumerate() {
-        let per_node = per_node.clone();
-        let param_str = move |eter: &str| match per_node[eter].clone().into_string() {
+        let per_node = Rc::new(per_node);
+        let param_str = |eter: &str| match Rc::clone(&per_node)[eter].clone().into_string() {
             Some(i) => i,
             None => panic!("{} not exist!", eter),
         };
 
-        let param_int = move |eter: &str| match per_node[eter].clone().as_i64() {
+        let param_int = |eter: &str| match Rc::clone(&per_node)[eter].clone().as_i64() {
             Some(i) => i as u16,
-            None => match per_node[eter].clone().into_string().unwrap().parse::<u16>() {
+            None => match Rc::clone(&per_node)[eter]
+                .clone()
+                .into_string()
+                .unwrap()
+                .parse::<u16>()
+            {
                 Ok(i) => i,
                 Err(_) => panic!("error on parsing {eter}"),
             },
         };
 
-        let optional = move |eter: &str| match per_node[eter].clone().into_string() {
+        let optional = |eter: &str| match Rc::clone(&per_node)[eter].clone().into_string() {
             Some(i) => match i.as_str() {
                 "obfs" => Some("obfs-local".to_string()),
                 "v2ray-plugin" => Some("v2ray-plugin".to_string()),
@@ -39,15 +44,18 @@ fn convert_to_node_vec(
             _ => None,
         };
 
-        let named = move || {
-            per_node["name"].clone().into_string().unwrap_or(format!(
-                "{}-{}",
-                per_node["type"].clone().into_string().unwrap(),
-                index
-            ))
+        let named = || {
+            Rc::clone(&per_node)["name"]
+                .clone()
+                .into_string()
+                .unwrap_or(format!(
+                    "{}-{}",
+                    per_node["type"].clone().into_string().unwrap(),
+                    index
+                ))
         };
 
-        let parse_tls = move || {
+        let parse_tls = || {
             if !per_node["tls"].is_null() {
                 Some(TLS {
                     enabled: if !(per_node["sni"].is_null()
@@ -99,7 +107,6 @@ fn convert_to_node_vec(
                 None
             }
         };
-
         let tobe_node = match per_node["type"].clone().into_string().unwrap().as_str() {
             "ss" => AvalProtocals::Shadowsocks {
                 r#type: "shadowsocks".to_string(),
