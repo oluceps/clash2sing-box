@@ -4,31 +4,27 @@ use clap::Parser;
 use reqwest::header::USER_AGENT;
 use std::fs::read_to_string;
 use std::path::PathBuf;
-use std::rc::Rc;
 use std::sync::mpsc;
-use std::{error::Error, fs, thread};
+use std::{error::Error, fs};
 use yaml_rust::{Yaml, YamlLoader};
 
-fn convert_to_node_vec(
+async fn convert_to_node_vec(
     yaml_data: &yaml_rust::Yaml,
 ) -> Result<(Vec<serde_json::Value>, Vec<String>), Box<dyn Error>> {
     let (tx, rx) = mpsc::channel();
-    //    let (tx_1, rx_1) = mpsc::channel();
 
     for (index, per_node) in yaml_data["proxies"].clone().into_iter().enumerate() {
         let tx = tx.clone();
-        //      let tx_1 = tx_1.clone();
-        thread::spawn(move || {
-            let per_node = Rc::new(per_node);
-            let param_str = |eter: &str| match Rc::clone(&per_node)[eter].clone().into_string() {
+        tokio::spawn(async move {
+            let param_str = |eter: &str| match per_node[eter].to_owned().into_string() {
                 Some(i) => i,
                 None => panic!("{} not exist!", eter),
             };
 
-            let param_int = |eter: &str| match Rc::clone(&per_node)[eter].clone().as_i64() {
+            let param_int = |eter: &str| match per_node[eter].as_i64() {
                 Some(i) => i as u16,
-                None => match Rc::clone(&per_node)[eter]
-                    .clone()
+                None => match per_node[eter]
+                    .to_owned()
                     .into_string()
                     .unwrap()
                     .parse::<u16>()
@@ -38,8 +34,8 @@ fn convert_to_node_vec(
                 },
             };
 
-            let optional = |eter: &str| match Rc::clone(&per_node)[eter].clone().into_string() {
-                Some(i) => match i.as_str() {
+            let optional = |eter: &str| match per_node[eter].as_str() {
+                Some(i) => match i {
                     "obfs" => Some("obfs-local".to_string()),
                     "v2ray-plugin" => Some("v2ray-plugin".to_string()),
                     &_ => None,
@@ -48,14 +44,11 @@ fn convert_to_node_vec(
             };
 
             let named = || {
-                Rc::clone(&per_node)["name"]
-                    .clone()
-                    .into_string()
-                    .unwrap_or(format!(
-                        "{}-{}",
-                        per_node["type"].clone().into_string().unwrap(),
-                        index
-                    ))
+                per_node["name"].to_owned().into_string().unwrap_or(format!(
+                    "{}-{}",
+                    per_node["type"].to_owned().into_string().unwrap(),
+                    index
+                ))
             };
 
             let parse_tls = || {
@@ -70,20 +63,20 @@ fn convert_to_node_vec(
                             false
                         },
 
-                        disable_sni: if per_node["sni"].clone().into_string()
+                        disable_sni: if per_node["sni"].to_owned().into_string()
                             == Some("true".to_string())
                         {
                             true
                         } else {
                             false
                         },
-                        server_name: if per_node["sni"].clone().into_string().is_some() {
+                        server_name: if per_node["sni"].to_owned().into_string().is_some() {
                             Some(param_str("sni"))
                         } else {
                             None
                         },
                         insecure: false, // default false, turn on manual if needed
-                        alpn: if per_node["alpn"].clone().into_string().is_some() {
+                        alpn: if per_node["alpn"].to_owned().into_string().is_some() {
                             Some(vec!["h2".to_string()])
                         } else {
                             None
@@ -95,12 +88,12 @@ fn convert_to_node_vec(
                             fingerprint: "chrome".to_string(),
                         },
 
-                        certificate_path: if let Some(i) = per_node["ca"].clone().into_string() {
+                        certificate_path: if let Some(i) = per_node["ca"].to_owned().into_string() {
                             Some(i)
                         } else {
                             None
                         },
-                        certificate: if let Some(i) = per_node["ca_str"].clone().into_string() {
+                        certificate: if let Some(i) = per_node["ca_str"].to_owned().into_string() {
                             Some(i)
                         } else {
                             None
@@ -110,7 +103,7 @@ fn convert_to_node_vec(
                     None
                 }
             };
-            let tobe_node = match per_node["type"].clone().into_string().unwrap().as_str() {
+            let tobe_node = match per_node["type"].as_str().unwrap() {
                 "ss" => AvalProtocals::Shadowsocks {
                     r#type: "shadowsocks".to_string(),
                     tag: named(),
@@ -119,11 +112,11 @@ fn convert_to_node_vec(
                     method: param_str("cipher"),
                     password: param_str("password"),
                     plugin: optional("plugin"),
-                    plugin_opts: match per_node["plugin"].clone().into_string() {
+                    plugin_opts: match per_node["plugin"].to_owned().into_string() {
                         Some(_) => Some(plugin_opts_to_string(per_node["plugin-opts"].clone())),
                         None => None,
                     },
-                    network: match per_node["udp"].clone().into_string() {
+                    network: match per_node["udp"].to_owned().into_string() {
                         Some(_) => None,
                         _ => Some("tcp".to_string()),
                     },
@@ -184,14 +177,14 @@ fn convert_to_node_vec(
                     server_port: param_int("port"),
                     up: per_node["up"].clone().into_string(),
                     up_mbps: None,
-                    down: per_node["down"].clone().into_string(),
+                    down: per_node["down"].to_owned().into_string(),
                     down_mbps: None,
-                    obfs: per_node["obfs"].clone().into_string(),
+                    obfs: per_node["obfs"].to_owned().into_string(),
                     auth: None,
-                    auth_str: per_node["auth_str"].clone().into_string(),
+                    auth_str: per_node["auth_str"].to_owned().into_string(),
                     recv_window_conn: Some(param_int("recv_window_conn").into()),
                     recv_window: Some(param_int("recv_window").into()),
-                    disable_mtu_discovery: if per_node["sni"].clone().into_string()
+                    disable_mtu_discovery: if per_node["sni"].to_owned().into_string()
                         == Some("true".to_string())
                     {
                         Some(true)
@@ -208,7 +201,7 @@ fn convert_to_node_vec(
                     server_port: param_int("port"),
                     uuid: param_str("uuid"),
                     security: None,
-                    alter_id: if per_node["alertId"].clone().into_string().is_some() {
+                    alter_id: if per_node["alertId"].to_owned().into_string().is_some() {
                         Some(param_int("alertId").into())
                     } else {
                         Some(0)
@@ -228,7 +221,7 @@ fn convert_to_node_vec(
 
             tx.send((
                 serde_json::to_value(&tobe_node).unwrap()[match per_node["type"]
-                    .clone()
+                    .to_owned()
                     .into_string()
                     .unwrap()
                     .as_str()
@@ -241,7 +234,7 @@ fn convert_to_node_vec(
                     i => i,
                 }]
                 .clone(),
-                per_node["name"].clone().into_string().unwrap(),
+                per_node["name"].to_owned().into_string().unwrap(),
             ))
             .unwrap();
 
@@ -268,7 +261,7 @@ fn read_yaml(yaml_path: PathBuf) -> yaml_rust::Yaml {
     );
 
     match yaml_data {
-        Ok(i) => i[0].clone(),
+        Ok(i) => i[0].to_owned(),
         Err(e) => panic!("{e}"),
     }
 }
@@ -276,8 +269,8 @@ fn read_yaml(yaml_path: PathBuf) -> yaml_rust::Yaml {
 fn plugin_opts_to_string(opts: Yaml) -> String {
     format!(
         "mode={};host={}",
-        opts["mode"].clone().into_string().unwrap(),
-        opts["host"].clone().into_string().unwrap()
+        opts["mode"].to_owned().into_string().unwrap(),
+        opts["host"].to_owned().into_string().unwrap()
     )
 }
 
@@ -302,7 +295,8 @@ struct Args {
     #[arg(short, long)]
     output: Option<String>,
 }
-fn main() {
+#[tokio::main]
+async fn main() {
     let args = Args::parse();
 
     let yaml_path: Option<PathBuf> = match args.subscribe {
@@ -318,9 +312,10 @@ fn main() {
         None => {
             YamlLoader::load_from_str(get_subscribe(&args.subscribe.unwrap()).unwrap().as_str())
                 .unwrap()[0]
-                .clone()
+                .to_owned()
         }
-    });
+    })
+    .await;
 
     if let Ok(ref i) = node_vec {
         println!("node name list:\n{:?}\n\n\n", i.1);
