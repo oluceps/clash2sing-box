@@ -1,238 +1,265 @@
 mod node;
+use crate::node::*;
 use clap::Parser;
 use reqwest::header::USER_AGENT;
 use std::fs::read_to_string;
 use std::path::PathBuf;
-use std::{error::Error, fs};
+use std::rc::Rc;
+use std::sync::mpsc;
+use std::{error::Error, fs, thread};
 use yaml_rust::{Yaml, YamlLoader};
-
-use crate::node::*;
 
 fn convert_to_node_vec(
     yaml_data: &yaml_rust::Yaml,
 ) -> Result<(Vec<serde_json::Value>, Vec<String>), Box<dyn Error>> {
-    let mut node_list: Vec<serde_json::Value> = vec![];
-    let mut nodename_list: Vec<String> = vec![];
+    let (tx, rx) = mpsc::channel();
+    //    let (tx_1, rx_1) = mpsc::channel();
 
     for (index, per_node) in yaml_data["proxies"].clone().into_iter().enumerate() {
-        let param_str = |eter: &str| match per_node[eter].clone().into_string() {
-            Some(i) => i,
-            None => panic!("{} not exist!", eter),
-        };
+        let tx = tx.clone();
+        //      let tx_1 = tx_1.clone();
+        thread::spawn(move || {
+            let per_node = Rc::new(per_node);
+            let param_str = |eter: &str| match Rc::clone(&per_node)[eter].clone().into_string() {
+                Some(i) => i,
+                None => panic!("{} not exist!", eter),
+            };
 
-        let param_int = |eter: &str| match per_node[eter].clone().as_i64() {
-            Some(i) => i as u16,
-            None => match per_node[eter].clone().into_string().unwrap().parse::<u16>() {
-                Ok(i) => i,
-                Err(_) => panic!("error on parsing {eter}"),
-            },
-        };
+            let param_int = |eter: &str| match Rc::clone(&per_node)[eter].clone().as_i64() {
+                Some(i) => i as u16,
+                None => match Rc::clone(&per_node)[eter]
+                    .clone()
+                    .into_string()
+                    .unwrap()
+                    .parse::<u16>()
+                {
+                    Ok(i) => i,
+                    Err(_) => panic!("error on parsing {eter}"),
+                },
+            };
 
-        let optional = |eter: &str| match per_node[eter].clone().into_string() {
-            Some(i) => match i.as_str() {
-                "obfs" => Some("obfs-local".to_string()),
-                "v2ray-plugin" => Some("v2ray-plugin".to_string()),
-                &_ => None,
-            },
-            _ => None,
-        };
+            let optional = |eter: &str| match Rc::clone(&per_node)[eter].clone().into_string() {
+                Some(i) => match i.as_str() {
+                    "obfs" => Some("obfs-local".to_string()),
+                    "v2ray-plugin" => Some("v2ray-plugin".to_string()),
+                    &_ => None,
+                },
+                _ => None,
+            };
 
-        let named = || {
-            per_node["name"].clone().into_string().unwrap_or(format!(
-                "{}-{}",
-                per_node["type"].clone().into_string().unwrap(),
-                index
-            ))
-        };
+            let named = || {
+                Rc::clone(&per_node)["name"]
+                    .clone()
+                    .into_string()
+                    .unwrap_or(format!(
+                        "{}-{}",
+                        per_node["type"].clone().into_string().unwrap(),
+                        index
+                    ))
+            };
 
-        let parse_tls = || {
-            if !per_node["tls"].is_null() {
-                Some(TLS {
-                    enabled: if !(per_node["sni"].is_null()
-                        | per_node["alpn"].is_null()
-                        | per_node["skip-cert-verify"].is_null())
-                    {
-                        true
-                    } else {
-                        false
+            let parse_tls = || {
+                if !per_node["tls"].is_null() {
+                    Some(TLS {
+                        enabled: if !(per_node["sni"].is_null()
+                            | per_node["alpn"].is_null()
+                            | per_node["skip-cert-verify"].is_null())
+                        {
+                            true
+                        } else {
+                            false
+                        },
+
+                        disable_sni: if per_node["sni"].clone().into_string()
+                            == Some("true".to_string())
+                        {
+                            true
+                        } else {
+                            false
+                        },
+                        server_name: if per_node["sni"].clone().into_string().is_some() {
+                            Some(param_str("sni"))
+                        } else {
+                            None
+                        },
+                        insecure: false, // default false, turn on manual if needed
+                        alpn: if per_node["alpn"].clone().into_string().is_some() {
+                            Some(vec!["h2".to_string()])
+                        } else {
+                            None
+                        },
+
+                        // Default enable utls to prevent potential attack. See https://github.com/net4people/bbs/issues/129
+                        utls: UTLS {
+                            enabled: true,
+                            fingerprint: "chrome".to_string(),
+                        },
+
+                        certificate_path: if let Some(i) = per_node["ca"].clone().into_string() {
+                            Some(i)
+                        } else {
+                            None
+                        },
+                        certificate: if let Some(i) = per_node["ca_str"].clone().into_string() {
+                            Some(i)
+                        } else {
+                            None
+                        },
+                    })
+                } else {
+                    None
+                }
+            };
+            let tobe_node = match per_node["type"].clone().into_string().unwrap().as_str() {
+                "ss" => AvalProtocals::Shadowsocks {
+                    r#type: "shadowsocks".to_string(),
+                    tag: named(),
+                    server: param_str("server"),
+                    server_port: param_int("port"),
+                    method: param_str("cipher"),
+                    password: param_str("password"),
+                    plugin: optional("plugin"),
+                    plugin_opts: match per_node["plugin"].clone().into_string() {
+                        Some(_) => Some(plugin_opts_to_string(per_node["plugin-opts"].clone())),
+                        None => None,
                     },
+                    network: match per_node["udp"].clone().into_string() {
+                        Some(_) => None,
+                        _ => Some("tcp".to_string()),
+                    },
+                    udp_over_tcp: false,
+                    //                multiplex: Some(Multiplex {
+                    //                    enable: false,
+                    //                    protocol: "smux".to_string(),
+                    //                    max_connections: 0,
+                    //                    min_streams: 0,
+                    //                    max_streams: 0,
+                    //                }),
+                },
 
-                    disable_sni: if per_node["sni"].clone().into_string()
+                "socks5" => AvalProtocals::Socks {
+                    r#type: "socks".to_string(),
+                    tag: named(),
+                    server: param_str("server"),
+                    server_port: param_int("port"),
+                    version: 5,
+                    username: optional("username"),
+                    password: optional("username"),
+                    network: if !per_node["udp"].is_null() {
+                        Some("udp".to_string())
+                    } else {
+                        None
+                    },
+                    udp_over_tcp: false,
+                },
+
+                "http" => AvalProtocals::HTTP {
+                    r#type: "http".to_string(),
+                    tag: named(),
+                    server: param_str("server"),
+                    server_port: param_int("port"),
+                    username: optional("username"),
+                    password: optional("password"),
+                    tls: parse_tls(),
+                },
+
+                "trojan" => AvalProtocals::Trojan {
+                    r#type: "trojan".to_string(),
+                    tag: named(),
+                    server: param_str("server"),
+                    server_port: param_int("port"),
+                    password: param_str("password"),
+                    network: if !per_node["udp"].is_null() {
+                        None
+                    } else {
+                        Some("tcp".to_string())
+                    },
+                    tls: parse_tls(),
+                },
+
+                "hysteria" => AvalProtocals::Hysteria {
+                    r#type: "hysteria".to_string(),
+                    tag: named(),
+                    server: param_str("server"),
+                    server_port: param_int("port"),
+                    up: per_node["up"].clone().into_string(),
+                    up_mbps: None,
+                    down: per_node["down"].clone().into_string(),
+                    down_mbps: None,
+                    obfs: per_node["obfs"].clone().into_string(),
+                    auth: None,
+                    auth_str: per_node["auth_str"].clone().into_string(),
+                    recv_window_conn: Some(param_int("recv_window_conn").into()),
+                    recv_window: Some(param_int("recv_window").into()),
+                    disable_mtu_discovery: if per_node["sni"].clone().into_string()
                         == Some("true".to_string())
                     {
-                        true
-                    } else {
-                        false
-                    },
-                    server_name: if per_node["sni"].clone().into_string().is_some() {
-                        Some(param_str("sni"))
+                        Some(true)
                     } else {
                         None
                     },
-                    insecure: false, // default false, turn on manual if needed
-                    alpn: if per_node["alpn"].clone().into_string().is_some() {
-                        Some(vec!["h2".to_string()])
+                    tls: parse_tls(),
+                },
+
+                "vmess" => AvalProtocals::VMess {
+                    r#type: "vmess".to_string(),
+                    tag: named(),
+                    server: param_str("server"),
+                    server_port: param_int("port"),
+                    uuid: param_str("uuid"),
+                    security: None,
+                    alter_id: if per_node["alertId"].clone().into_string().is_some() {
+                        Some(param_int("alertId").into())
                     } else {
+                        Some(0)
+                    },
+                    global_padding: None,
+                    authenticated_length: None,
+                    network: if !per_node["udp"].is_null() {
                         None
-                    },
-
-                    // Default enable utls to prevent potential attack. See https://github.com/net4people/bbs/issues/129
-                    utls: UTLS {
-                        enabled: true,
-                        fingerprint: "chrome".to_string(),
-                    },
-
-                    certificate_path: if let Some(i) = per_node["ca"].clone().into_string() {
-                        Some(i)
                     } else {
-                        None
+                        Some("tcp".to_string())
                     },
-                    certificate: if let Some(i) = per_node["ca_str"].clone().into_string() {
-                        Some(i)
-                    } else {
-                        None
-                    },
-                })
-            } else {
-                None
-            }
-        };
-        let tobe_node = match per_node["type"].clone().into_string().unwrap().as_str() {
-            "ss" => AvalProtocals::Shadowsocks {
-                r#type: "shadowsocks".to_string(),
-                tag: named(),
-                server: param_str("server"),
-                server_port: param_int("port"),
-                method: param_str("cipher"),
-                password: param_str("password"),
-                plugin: optional("plugin"),
-                plugin_opts: match per_node["plugin"].clone().into_string() {
-                    Some(_) => Some(plugin_opts_to_string(per_node["plugin-opts"].clone())),
-                    None => None,
+                    tls: parse_tls(),
                 },
-                network: match per_node["udp"].clone().into_string() {
-                    Some(_) => None,
-                    _ => Some("tcp".to_string()),
-                },
-                udp_over_tcp: false,
-                //                multiplex: Some(Multiplex {
-                //                    enable: false,
-                //                    protocol: "smux".to_string(),
-                //                    max_connections: 0,
-                //                    min_streams: 0,
-                //                    max_streams: 0,
-                //                }),
-            },
 
-            "socks5" => AvalProtocals::Socks {
-                r#type: "socks".to_string(),
-                tag: named(),
-                server: param_str("server"),
-                server_port: param_int("port"),
-                version: 5,
-                username: optional("username"),
-                password: optional("username"),
-                network: if !per_node["udp"].is_null() {
-                    Some("udp".to_string())
-                } else {
-                    None
-                },
-                udp_over_tcp: false,
-            },
+                &_ => todo!(),
+            };
 
-            "http" => AvalProtocals::HTTP {
-                r#type: "http".to_string(),
-                tag: named(),
-                server: param_str("server"),
-                server_port: param_int("port"),
-                username: optional("username"),
-                password: optional("password"),
-                tls: parse_tls(),
-            },
-
-            "trojan" => AvalProtocals::Trojan {
-                r#type: "trojan".to_string(),
-                tag: named(),
-                server: param_str("server"),
-                server_port: param_int("port"),
-                password: param_str("password"),
-                network: if !per_node["udp"].is_null() {
-                    None
-                } else {
-                    Some("tcp".to_string())
-                },
-                tls: parse_tls(),
-            },
-
-            "hysteria" => AvalProtocals::Hysteria {
-                r#type: "hysteria".to_string(),
-                tag: named(),
-                server: param_str("server"),
-                server_port: param_int("port"),
-                up: per_node["up"].clone().into_string(),
-                up_mbps: None,
-                down: per_node["down"].clone().into_string(),
-                down_mbps: None,
-                obfs: per_node["obfs"].clone().into_string(),
-                auth: None,
-                auth_str: per_node["auth_str"].clone().into_string(),
-                recv_window_conn: Some(param_int("recv_window_conn").into()),
-                recv_window: Some(param_int("recv_window").into()),
-                disable_mtu_discovery: if per_node["sni"].clone().into_string()
-                    == Some("true".to_string())
+            tx.send((
+                serde_json::to_value(&tobe_node).unwrap()[match per_node["type"]
+                    .clone()
+                    .into_string()
+                    .unwrap()
+                    .as_str()
                 {
-                    Some(true)
-                } else {
-                    None
-                },
-                tls: parse_tls(),
-            },
+                    "ss" => "Shadowsocks",
+                    "trojan" => "Trojan",
+                    "socks5" => "Socks",
+                    "hysteria" => "Hysteria",
+                    "vmess" => "VMess",
+                    i => i,
+                }]
+                .clone(),
+                per_node["name"].clone().into_string().unwrap(),
+            ))
+            .unwrap();
 
-            "vmess" => AvalProtocals::VMess {
-                r#type: "vmess".to_string(),
-                tag: named(),
-                server: param_str("server"),
-                server_port: param_int("port"),
-                uuid: param_str("uuid"),
-                security: None,
-                alter_id: if per_node["alertId"].clone().into_string().is_some() {
-                    Some(param_int("alertId").into())
-                } else {
-                    Some(0)
-                },
-                global_padding: None,
-                authenticated_length: None,
-                network: if !per_node["udp"].is_null() {
-                    None
-                } else {
-                    Some("tcp".to_string())
-                },
-                tls: parse_tls(),
-            },
-
-            &_ => todo!(),
-        };
-
-        //        let a = processed_node::new();
-        node_list.push(
-            serde_json::to_value(&tobe_node).unwrap()[match per_node["type"]
-                .clone()
-                .into_string()
-                .unwrap()
-                .as_str()
-            {
-                "ss" => "Shadowsocks",
-                "trojan" => "Trojan",
-                "socks5" => "Socks",
-                "hysteria" => "Hysteria",
-                "vmess" => "VMess",
-                i => i,
-            }]
-            .clone(),
-        );
-        nodename_list.push(per_node["name"].clone().into_string().unwrap())
+            //            println!("{}", per_node["name"].clone().into_string().unwrap())
+            drop(tx);
+        });
     }
-    Ok((node_list, nodename_list))
+
+    let mut tesa: Vec<serde_json::Value> = vec![];
+    let mut tesb: Vec<String> = vec![];
+
+    drop(tx);
+    for rec in rx {
+        tesa.push(rec.0);
+        tesb.push(rec.1)
+    }
+    //    println!("{:?} \n\n {:?}", &tesa, &tesb);
+    Ok((tesa, tesb))
 }
 
 fn read_yaml(yaml_path: PathBuf) -> yaml_rust::Yaml {
