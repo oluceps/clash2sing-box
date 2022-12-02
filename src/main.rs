@@ -296,11 +296,11 @@ struct Args {
     content: Option<String>,
 
     /// Get clash subscription profile by url
-    #[arg(short, long)]
+    #[arg(short, long, value_name = "URL")]
     subscribe: Option<String>,
 
     /// Output sing-box json profile
-    #[arg(short, long)]
+    #[arg(short, long, value_name = "PATH")]
     output: Option<String>,
 }
 fn main() {

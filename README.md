@@ -11,13 +11,13 @@
 ### to parse clash subscribe link  
 
 ```console  
-./clash2sing-box --subscribe "<link>"  
+./clash2sing-box --subscribe "<URL>"  
 ```
 
 ### to parse clash `config.yaml`  
 
 ```console
-./clash2sing-box --path <PATH_TO_config.yaml>  
+./clash2sing-box --path <PATH TO config.yaml>  
 ```   
 
 
@@ -26,11 +26,11 @@
 Usage: clash2sing-box [OPTIONS]
 
 Options:
-  -p, --path <PATH>            Read path of clash format config.yaml file
-  -c, --content <CONTENT>      (unimplement) Read content of clash format proxies list
-  -s, --subscribe <SUBSCRIBE>  Get clash subscription profile by url
-  -o, --output <OUTPUT>        Output sing-box json profile
-  -h, --help                   Print help information
-  -V, --version                Print version information
+  -p, --path <PATH>        Read path of clash format config.yaml file
+  -c, --content <CONTENT>  (unimplement) Read content of clash format proxies list
+  -s, --subscribe <URL>    Get clash subscription profile by url
+  -o, --output <PATH>      Output sing-box json profile
+  -h, --help               Print help information
+  -V, --version            Print version information
 ```
 
