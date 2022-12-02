@@ -299,7 +299,7 @@ struct Args {
     #[arg(short, long)]
     subscribe: Option<String>,
 
-    /// output sing-box json profile
+    /// Output sing-box json profile
     #[arg(short, long)]
     output: Option<String>,
 }
