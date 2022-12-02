@@ -94,7 +94,7 @@ dependencies = [
 
 [[package]]
 name = "clash2sing-box"
-version = "0.1.6"
+version = "0.1.9"
 dependencies = [
  "clap",
  "futures",
