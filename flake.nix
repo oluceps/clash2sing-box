@@ -67,6 +67,4 @@
         nativeBuildInputs = [ rustup openssl.dev pkg-config ];
       };
     });
-
-
 }
