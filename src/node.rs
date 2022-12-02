@@ -45,7 +45,24 @@ pub enum AvalProtocals {
         udp_over_tcp: bool,
         //      multiplex: Option<Multiplex>,
     },
-    //VMess,
+    Shadowsocksr {
+        r#type: String,
+        tag: String,
+        server: String,
+        server_port: u16,
+        method: String,
+        password: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        obfs: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        obfs_param: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        protocol: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        protocol_param: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        network: Option<String>,
+    },
     Trojan {
         r#type: String,
         tag: String,

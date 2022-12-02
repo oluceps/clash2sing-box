@@ -129,6 +129,23 @@ fn convert_to_node_vec(
                 //                }),
             },
 
+            "ssr" => AvalProtocals::Shadowsocksr {
+                r#type: "shadowsocks".to_string(),
+                tag: named(),
+                server: param_str("server"),
+                server_port: param_int("port"),
+                method: param_str("cipher"),
+                password: param_str("password"),
+                obfs: Some(param_str("obfs")),
+                obfs_param: Some(param_str("obfs-param")),
+                protocol: Some(param_str("protocol")),
+                protocol_param: Some(param_str("protocol-param")),
+                network: match per_node["udp"].to_owned().into_string() {
+                    Some(_) => None,
+                    _ => Some("tcp".to_string()),
+                },
+            },
+
             "socks5" => AvalProtocals::Socks {
                 r#type: "socks".to_string(),
                 tag: named(),
@@ -231,9 +248,11 @@ fn convert_to_node_vec(
                 "socks5" => "Socks",
                 "hysteria" => "Hysteria",
                 "vmess" => "VMess",
+                "ssr" => "Shadowsocksr",
                 i => i,
             }]
             .to_owned(),
+            // TYPE FROM CLASH => STRUCT NAME
         );
         nodename_list.push(per_node["name"].to_owned().into_string().unwrap())
     }
@@ -268,15 +287,19 @@ fn get_subscribe(sublink: &str) -> Result<String, reqwest::Error> {
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
+    /// Read path of clash format config.yaml file
     #[arg(short, long)]
     path: Option<String>,
 
+    /// (unimplement)Read content of clash format proxies list
     #[arg(short, long)]
     content: Option<String>,
 
+    /// Get clash subscription profile by url
     #[arg(short, long)]
     subscribe: Option<String>,
 
+    /// output sing-box json profile
     #[arg(short, long)]
     output: Option<String>,
 }
