@@ -291,7 +291,7 @@ struct Args {
     #[arg(short, long)]
     path: Option<String>,
 
-    /// (unimplement)Read content of clash format proxies list
+    /// (unimplement) Read content of clash format proxies list
     #[arg(short, long)]
     content: Option<String>,
 
