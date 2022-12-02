@@ -287,15 +287,19 @@ fn get_subscribe(sublink: &str) -> Result<String, reqwest::Error> {
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
+    /// Path of clash format config.yaml file
     #[arg(short, long)]
     path: Option<String>,
 
+    /// (unimplement) Content of clash format proxies list
     #[arg(short, long)]
     content: Option<String>,
 
+    /// clash subscription url
     #[arg(short, long)]
     subscribe: Option<String>,
 
+    /// output json file path
     #[arg(short, long)]
     output: Option<String>,
 }

@@ -5,7 +5,7 @@
 - [x]  Trojan  
 - [x]  Hysteria  
 - [ ]  ~~ShadowTLS~~      `Clash.Meta` not support `Shadow-tls` yet  
-- [ ]  ShadowsocksR     
+- [x]  ShadowsocksR     
 - [ ]  ~~VLESS~~          `VLESS` had been abandoned officially. See [detail](https://www.v2fly.org/v5/config/proxy/vless.html)  
 
 ### to parse clash subscribe link  
@@ -21,15 +21,15 @@
 ```   
 
 
-```
+```console
 > ./clash2sing-box --help
 Usage: clash2sing-box [OPTIONS]
 
 Options:
-  -p, --path <PATH>
-  -c, --content <CONTENT>
-  -s, --subscribe <SUBSCRIBE>
-  -o, --output <OUTPUT>
+  -p, --path <PATH>            Path of clash format config.yaml file
+  -c, --content <CONTENT>      (unimplement) Content of clash format proxies list
+  -s, --subscribe <SUBSCRIBE>  clash subscription url
+  -o, --output <OUTPUT>        output json file path
   -h, --help                   Print help information
   -V, --version                Print version information
 ```
