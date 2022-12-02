@@ -26,10 +26,10 @@
 Usage: clash2sing-box [OPTIONS]
 
 Options:
-  -p, --path <PATH>            Path of clash format config.yaml file
-  -c, --content <CONTENT>      (unimplement) Content of clash format proxies list
-  -s, --subscribe <SUBSCRIBE>  clash subscription url
-  -o, --output <OUTPUT>        output json file path
+  -p, --path <PATH>            Read path of clash format config.yaml file
+  -c, --content <CONTENT>      (unimplement)Read content of clash format proxies list
+  -s, --subscribe <SUBSCRIBE>  Get clash subscription profile by url
+  -o, --output <OUTPUT>        output sing-box json profile
   -h, --help                   Print help information
   -V, --version                Print version information
 ```
