@@ -98,6 +98,7 @@ version = "0.1.9"
 dependencies = [
  "clap",
  "futures",
+ "json_value_merge",
  "reqwest",
  "serde",
  "serde_json",
@@ -417,6 +418,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49409df3e3bf0856b916e2ceaca09ee28e6871cf7d9ce97a692cacfdb2a25a47"
 dependencies = [
  "wasm-bindgen",
+]
+
+[[package]]
+name = "json_value_merge"
+version = "1.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dc92837e7e541ab4a529c8f145bf9bd00718f6e2823705403521ead6204a0e5e"
+dependencies = [
+ "serde_json",
 ]
 
 [[package]]
