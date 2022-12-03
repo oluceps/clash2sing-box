@@ -235,7 +235,6 @@ fn convert_to_node_vec(
             &_ => todo!(),
         };
 
-        //        let a = processed_node::new();
         node_list.push(
             serde_json::to_value(&tobe_node).unwrap()[match per_node["type"]
                 .to_owned()
@@ -291,15 +290,19 @@ struct Args {
     #[arg(short, long)]
     path: Option<String>,
 
-    /// (unimplement) Read content of clash format proxies list
-    #[arg(short, long)]
-    content: Option<String>,
-
     /// Get clash subscription profile by url
     #[arg(short, long, value_name = "URL")]
     subscribe: Option<String>,
 
-    /// Output sing-box json profile
+    /// (unimplement) Read content of clash format proxies list
+    #[arg(short, long)]
+    content: Option<String>,
+
+    /// Output pretty-printed indented JSON
+    #[arg(short = 'f')]
+    format: bool,
+
+    /// Output sing-box JSON profile
     #[arg(short, long, value_name = "PATH")]
     output: Option<String>,
 }
@@ -324,21 +327,24 @@ fn main() {
     });
 
     if let Ok(ref i) = node_vec {
-        println!("node name list:\n{:?}\n\n\n", i.1);
+        println!("Node name list:\n\n\n{:?}\n\n\n", i.1);
     };
 
-    let j = serde_json::to_string(
-        &serde_json::to_value(&match node_vec {
-            Ok(i) => i.0,
-            Err(e) => panic!("{}", e),
-        })
-        .unwrap(),
-    )
+    let valued_json = &serde_json::to_value(&match node_vec {
+        Ok(i) => i.0,
+        Err(e) => panic!("{}", e),
+    })
     .unwrap();
 
-    println!("{}", j);
+    let j = match args.format {
+        true => serde_json::to_string_pretty(valued_json).unwrap(),
+        false => serde_json::to_string(valued_json).unwrap(),
+    };
+
+    println!("sing-box client outbound:\n\n\n{}", j);
 
     if let Some(i) = args.output {
         fs::write(&i, j.as_bytes()).unwrap();
+        println!("\n\n\nSuccessful written into {}", i)
     }
 }
