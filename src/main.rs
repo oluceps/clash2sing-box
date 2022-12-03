@@ -1,5 +1,8 @@
 mod node;
+use json_value_merge::Merge;
+mod paradigm;
 use clap::Parser;
+use paradigm::PARADIGM;
 use reqwest::header::USER_AGENT;
 use std::fs::read_to_string;
 use std::path::PathBuf;
@@ -302,6 +305,10 @@ struct Args {
     #[arg(short = 'f')]
     format: bool,
 
+    /// Generate minimal avaliable sing-box JSON profile
+    #[arg(short, long = "gen-profile")]
+    gen_profile: bool,
+
     /// Output sing-box JSON profile
     #[arg(short, long, value_name = "PATH")]
     output: Option<String>,
@@ -326,25 +333,54 @@ fn main() {
         }
     });
 
-    if let Ok(ref i) = node_vec {
-        println!("Node name list:\n\n\n{:?}\n\n\n", i.1);
-    };
-
-    let valued_json = &serde_json::to_value(&match node_vec {
-        Ok(i) => i.0,
+    let valued_nodes_json = serde_json::to_value(&match node_vec {
+        Ok(ref i) => i.0.clone(),
         Err(e) => panic!("{}", e),
     })
     .unwrap();
 
-    let j = match args.format {
-        true => serde_json::to_string_pretty(valued_json).unwrap(),
-        false => serde_json::to_string(valued_json).unwrap(),
+    let valued_names_json = serde_json::to_value(&match node_vec {
+        Ok(ref i) => i.1.clone(),
+        Err(e) => panic!("{}", e),
+    });
+
+    if let Ok(ref i) = valued_names_json {
+        println!("Node name list:\n\n\n{}\n", i.to_string());
     };
 
-    println!("sing-box client outbound:\n\n\n{}", j);
+    match args.gen_profile {
+        true => {
+            let mut paradigm_deserialized: serde_json::Value =
+                serde_json::from_str(PARADIGM).unwrap();
+            paradigm_deserialized["outbounds"].merge(valued_nodes_json.clone());
+            paradigm_deserialized["outbounds"][1]["outbounds"]
+                .merge(valued_names_json.unwrap().clone());
 
-    if let Some(i) = args.output {
-        fs::write(&i, j.as_bytes()).unwrap();
-        println!("\n\n\nSuccessful written into {}", i)
+            let j = match args.format {
+                true => serde_json::to_string_pretty(&paradigm_deserialized).unwrap(),
+                false => serde_json::to_string(&paradigm_deserialized).unwrap(),
+            };
+
+            if let Some(i) = args.output {
+                fs::write(&i, j.as_bytes()).unwrap();
+                println!(
+                    "\nMinimal avaliable sing-box config had been successful written into {}",
+                    i
+                )
+            }
+        }
+        false => {
+            let j = match args.format {
+                true => serde_json::to_string_pretty(&valued_nodes_json).unwrap(),
+                false => serde_json::to_string(&valued_nodes_json).unwrap(),
+            };
+
+            println!("sing-box client outbound:\n\n\n{}", j);
+
+            if let Some(i) = args.output {
+                fs::write(&i, j.as_bytes()).unwrap();
+                println!("\n\n\nSuccessful written into {}", i)
+            }
+        }
     }
 }
