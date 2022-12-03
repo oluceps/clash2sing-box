@@ -1,5 +1,8 @@
 mod node;
+use json_value_merge::Merge;
+mod paradigm;
 use clap::Parser;
+use paradigm::PARADIGM;
 use reqwest::header::USER_AGENT;
 use std::fs::read_to_string;
 use std::path::PathBuf;
@@ -235,7 +238,6 @@ fn convert_to_node_vec(
             &_ => todo!(),
         };
 
-        //        let a = processed_node::new();
         node_list.push(
             serde_json::to_value(&tobe_node).unwrap()[match per_node["type"]
                 .to_owned()
@@ -291,16 +293,24 @@ struct Args {
     #[arg(short, long)]
     path: Option<String>,
 
+    /// Get clash subscription profile by url
+    #[arg(short, long, value_name = "URL")]
+    subscribe: Option<String>,
+
     /// (unimplement) Read content of clash format proxies list
     #[arg(short, long)]
     content: Option<String>,
 
-    /// Get clash subscription profile by url
-    #[arg(short, long)]
-    subscribe: Option<String>,
+    /// Output pretty-printed indented JSON
+    #[arg(short = 'f')]
+    format: bool,
 
-    /// Output sing-box json profile
-    #[arg(short, long)]
+    /// Generate minimal avaliable sing-box JSON profile
+    #[arg(short, long = "gen-profile")]
+    gen_profile: bool,
+
+    /// Output sing-box JSON profile
+    #[arg(short, long, value_name = "PATH")]
     output: Option<String>,
 }
 fn main() {
@@ -323,22 +333,54 @@ fn main() {
         }
     });
 
-    if let Ok(ref i) = node_vec {
-        println!("node name list:\n{:?}\n\n\n", i.1);
-    };
-
-    let j = serde_json::to_string(
-        &serde_json::to_value(&match node_vec {
-            Ok(i) => i.0,
-            Err(e) => panic!("{}", e),
-        })
-        .unwrap(),
-    )
+    let valued_nodes_json = serde_json::to_value(&match node_vec {
+        Ok(ref i) => i.0.clone(),
+        Err(e) => panic!("{}", e),
+    })
     .unwrap();
 
-    println!("{}", j);
+    let valued_names_json = serde_json::to_value(&match node_vec {
+        Ok(ref i) => i.1.clone(),
+        Err(e) => panic!("{}", e),
+    });
 
-    if let Some(i) = args.output {
-        fs::write(&i, j.as_bytes()).unwrap();
+    if let Ok(ref i) = valued_names_json {
+        println!("Node name list:\n\n\n{}\n", i.to_string());
+    };
+
+    match args.gen_profile {
+        true => {
+            let mut paradigm_deserialized: serde_json::Value =
+                serde_json::from_str(PARADIGM).unwrap();
+            paradigm_deserialized["outbounds"].merge(valued_nodes_json.clone());
+            paradigm_deserialized["outbounds"][1]["outbounds"]
+                .merge(valued_names_json.unwrap().clone());
+
+            let j = match args.format {
+                true => serde_json::to_string_pretty(&paradigm_deserialized).unwrap(),
+                false => serde_json::to_string(&paradigm_deserialized).unwrap(),
+            };
+
+            if let Some(i) = args.output {
+                fs::write(&i, j.as_bytes()).unwrap();
+                println!(
+                    "\nMinimal avaliable sing-box config had been successful written into {}",
+                    i
+                )
+            }
+        }
+        false => {
+            let j = match args.format {
+                true => serde_json::to_string_pretty(&valued_nodes_json).unwrap(),
+                false => serde_json::to_string(&valued_nodes_json).unwrap(),
+            };
+
+            println!("sing-box client outbound:\n\n\n{}", j);
+
+            if let Some(i) = args.output {
+                fs::write(&i, j.as_bytes()).unwrap();
+                println!("\n\n\nSuccessful written into {}", i)
+            }
+        }
     }
 }
