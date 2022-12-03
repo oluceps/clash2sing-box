@@ -1,15 +1,14 @@
 mod node;
-use json_value_merge::Merge;
 mod paradigm;
+use crate::node::*;
 use clap::Parser;
+use json_value_merge::Merge;
 use paradigm::PARADIGM;
 use reqwest::header::USER_AGENT;
 use std::fs::read_to_string;
 use std::path::PathBuf;
 use std::{error::Error, fs};
 use yaml_rust::{Yaml, YamlLoader};
-
-use crate::node::*;
 
 fn convert_to_node_vec(
     yaml_data: &yaml_rust::Yaml,
