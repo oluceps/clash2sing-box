@@ -1,36 +1,36 @@
-[中文](README_CN.md) | English  
+中文 | [English](README.md)   
 
-## Converting Supports  
+## 支持以下协议的转换  
 - [x]  Shadowsocks  
 - [x]  http  
 - [x]  socks  
 - [x]  VMess  
 - [x]  Trojan  
 - [x]  Hysteria  
-- [ ]  ~~ShadowTLS~~      `Clash.Meta` not support `Shadow-tls` yet  
+- [ ]  ~~ShadowTLS~~      `Clash.Meta` 暂不支持 `Shadow-tls`   
 - [x]  ShadowsocksR     
-- [ ]  ~~VLESS~~          `VLESS` had been abandoned officially. See [detail](https://www.v2fly.org/v5/config/proxy/vless.html)  
+- [ ]  ~~VLESS~~          `VLESS` 已经被官方弃用。见[详情](https://www.v2fly.org/v5/config/proxy/vless.html)  
 
-> to parse clash subscribe link and generate pretty-printed indented minimal avaliable sing-box profile  
+> 解析`clash`订阅链接 并生成格式化后的`sing-box`最小配置文件  
 ```console
 ./clash2sing-box --subscribe "<URL>" -g -f -o ./config.json
 ```  
 
-> to parse clash subscribe link  
+> 解析`clash`订阅链接 并输出`sing-box`节点信息至控制台  
 ```console  
 ./clash2sing-box --subscribe "<URL>"  
 ```
 
-> to parse clash `config.yaml`  
+> 解析`clash`配置文件 并输出`sing-box`节点信息至控制台  
 ```console
 ./clash2sing-box --path <PATH TO config.yaml>  
 ```   
 
-> converting clash profile to minimal sing-box profile  
+> 转换`clash`配置文件到`sing-box`最小配置文件  
 ```console
 ./clash2sing-box --path <PATH TO config.yaml> -g -f -o ./config.json   
 ```
-
+   
 ```console
 > ./clash2sing-box --help
 Usage: clash2sing-box [OPTIONS]
@@ -51,3 +51,9 @@ Options:
 + [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta)  
 + [sing-box](https://github.com/SagerNet/sing-box)  
 + [json_value_merge](https://github.com/jmfiaschi/json_value_merge)
+<br>
+<br>
+<br>
+<br>
+
+_Do You Hear The People Sing?_
