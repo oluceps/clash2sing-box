@@ -2,13 +2,42 @@ mod node;
 mod paradigm;
 use crate::node::*;
 use clap::Parser;
-use json_value_merge::Merge;
 use paradigm::PARADIGM;
 use reqwest::header::USER_AGENT;
+use serde_json::Value;
 use std::fs::read_to_string;
 use std::path::PathBuf;
 use std::{error::Error, fs};
 use yaml_rust::{Yaml, YamlLoader};
+
+pub trait Merge {
+    fn merge(&mut self, new_json_value: Value);
+}
+
+impl Merge for serde_json::Value {
+    fn merge(&mut self, new_json_value: Value) {
+        merge(self, &new_json_value);
+    }
+}
+
+fn merge(a: &mut Value, b: &Value) {
+    match (a, b) {
+        (Value::Object(ref mut a), &Value::Object(ref b)) => {
+            for (k, v) in b {
+                merge(a.entry(k).or_insert(Value::Null), v);
+            }
+        }
+        (Value::Array(ref mut a), &Value::Array(ref b)) => {
+            a.extend(b.clone());
+        }
+        (Value::Array(ref mut a), &Value::Object(ref b)) => {
+            a.extend([Value::Object(b.clone())]);
+        }
+        (a, b) => {
+            *a = b.clone();
+        }
+    }
+}
 
 fn convert_to_node_vec(
     yaml_data: &yaml_rust::Yaml,
