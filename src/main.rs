@@ -367,7 +367,7 @@ fn main() {
     });
 
     if let Ok(ref i) = valued_names_json {
-        println!("Node name list:\n\n\n{}\n", i.to_string());
+        println!("Node name list:\n\n{}\n", i.to_string());
     };
 
     match args.gen_profile {
@@ -390,7 +390,8 @@ fn main() {
                     i
                 )
             } else {
-                println! {"\n{}",j}
+                println!("\nMinimal configuration:");
+                println!("\n{}", j);
             }
         }
         false => {
