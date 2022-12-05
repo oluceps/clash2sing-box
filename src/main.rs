@@ -5,7 +5,11 @@ use clap::Parser;
 use paradigm::PARADIGM;
 use reqwest::header::USER_AGENT;
 use serde_json::Value;
-use std::{error::Error, fs::read_to_string, path::PathBuf};
+use std::{
+    error::Error,
+    fs::{read_to_string, write},
+    path::PathBuf,
+};
 use yaml_rust::{Yaml, YamlLoader};
 
 pub trait Merge {
@@ -380,7 +384,7 @@ fn main() {
             };
 
             if let Some(i) = args.output {
-                fs::write(&i, j.as_bytes()).unwrap();
+                write(&i, j.as_bytes()).unwrap();
                 println!(
                     "\nMinimal avaliable sing-box config had been successful written into {}",
                     i
@@ -398,7 +402,7 @@ fn main() {
             println!("sing-box client outbound:\n\n\n{}", j);
 
             if let Some(i) = args.output {
-                fs::write(&i, j.as_bytes()).unwrap();
+                write(&i, j.as_bytes()).unwrap();
                 println!("\n\n\nSuccessful written into {}", i)
             }
         }
