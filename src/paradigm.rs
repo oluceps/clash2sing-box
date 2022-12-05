@@ -3,34 +3,18 @@
 pub static PARADIGM: &str = r#"
 {
   "dns": {
+    "rules": [{ "geosite": "cn", "inbound": "tun-in", "server": "local" }],
     "servers": [
       {
-        "tag": "google",
-        "address": "tls:8.8.8.8"
+        "address": "tls://8.8.4.4:853",
+        "address_resolver": "local",
+        "address_strategy": "prefer_ipv4",
+        "detour": "direct",
+        "tag": "google"
       },
-      {
-        "tag": "local",
-        "address": "223.5.5.5",
-        "detour": "direct"
-      },
-      {
-        "tag": "block",
-        "address": "rcode:success"
-      }
+      { "address": "223.6.6.6", "detour": "direct", "tag": "local" }
     ],
-    "rules": [
-      {
-        "geosite": "category-ads-all",
-        "server": "block",
-        "disable_cache": true
-      },
-      {
-        "domain": "mydomain.com",
-        "geosite": "cn",
-        "server": "local"
-      }
-    ],
-    "strategy": "ipv4_only"
+    "strategy": "prefer_ipv4"
   },
   "inbounds": [
     {
