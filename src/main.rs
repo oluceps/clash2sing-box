@@ -387,6 +387,8 @@ fn main() {
                     "\nMinimal avaliable sing-box config had been successful written into {}",
                     i
                 )
+            } else {
+                println! {"\n{}",j}
             }
         }
         false => {
