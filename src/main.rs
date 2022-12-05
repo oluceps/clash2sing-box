@@ -5,9 +5,7 @@ use clap::Parser;
 use paradigm::PARADIGM;
 use reqwest::header::USER_AGENT;
 use serde_json::Value;
-use std::fs::read_to_string;
-use std::path::PathBuf;
-use std::{error::Error, fs};
+use std::{error::Error, fs::read_to_string, path::PathBuf};
 use yaml_rust::{Yaml, YamlLoader};
 
 pub trait Merge {
