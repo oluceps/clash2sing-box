@@ -100,13 +100,13 @@ fn convert_to_node_vec(
                     } else {
                         false
                     },
-                    server_name: if per_node["sni"].to_owned().into_string().is_some() {
+                    server_name: if let Some(_) = per_node["sni"].to_owned().into_string() {
                         Some(param_str("sni"))
                     } else {
                         None
                     },
                     insecure: false, // default false, turn on manual if needed
-                    alpn: if per_node["alpn"].to_owned().into_string().is_some() {
+                    alpn: if let Some(_) = per_node["alpn"].to_owned().into_string() {
                         Some(vec!["h2".to_string()])
                     } else {
                         None
@@ -118,16 +118,8 @@ fn convert_to_node_vec(
                         fingerprint: "chrome".to_string(),
                     },
 
-                    certificate_path: if let Some(i) = per_node["ca"].to_owned().into_string() {
-                        Some(i)
-                    } else {
-                        None
-                    },
-                    certificate: if let Some(i) = per_node["ca_str"].to_owned().into_string() {
-                        Some(i)
-                    } else {
-                        None
-                    },
+                    certificate_path: per_node["ca"].to_owned().into_string(),
+                    certificate: per_node["ca_str"].to_owned().into_string(),
                 })
             } else {
                 None
