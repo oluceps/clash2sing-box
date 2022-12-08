@@ -89,33 +89,25 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Result<NodeData, Box<dyn 
         let parse_tls = || {
             if !per_node["tls"].is_null() {
                 Some(TLS {
-                    enabled: if !(per_node["sni"].is_null()
+                    enabled: !(per_node["sni"].is_null()
                         | per_node["alpn"].is_null()
-                        | per_node["skip-cert-verify"].is_null())
-                    {
-                        true
-                    } else {
-                        false
-                    },
+                        | per_node["skip-cert-verify"].is_null()),
 
-                    disable_sni: if per_node["sni"].to_owned().into_string()
-                        == Some("true".to_string())
-                    {
-                        true
-                    } else {
-                        false
-                    },
-                    server_name: if let Some(_) = per_node["sni"].to_owned().into_string() {
-                        Some(param_str("sni"))
-                    } else {
-                        None
-                    },
-                    insecure: false, // default false, turn on manual if needed
-                    alpn: if let Some(_) = per_node["alpn"].to_owned().into_string() {
-                        Some(vec!["h2".to_string()])
-                    } else {
-                        None
-                    },
+                    disable_sni: per_node["sni"].to_owned().into_string()
+                        == Some("true".to_string()),
+
+                    server_name: per_node["sni"]
+                        .to_owned()
+                        .into_string()
+                        .map(|_| param_str("sni")),
+
+                    // Default to be false, turn on manually if needed
+                    insecure: false,
+
+                    alpn: per_node["alpn"]
+                        .to_owned()
+                        .into_string()
+                        .map(|_| vec!["h2".to_string()]),
 
                     // Default enable utls to prevent potential attack. See https://github.com/net4people/bbs/issues/129
                     utls: UTLS {
