@@ -315,10 +315,6 @@ struct Args {
     #[arg(short, long, value_name = "URL")]
     subscribe: Option<String>,
 
-    /// (unimplement) Read content of clash format proxies list
-    #[arg(short, long)]
-    content: Option<String>,
-
     /// Output pretty-printed indented JSON
     #[arg(short = 'f')]
     format: bool,
