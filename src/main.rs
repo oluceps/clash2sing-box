@@ -5,9 +5,11 @@ use clap::Parser;
 use paradigm::PARADIGM;
 use reqwest::header::USER_AGENT;
 use serde_json::Value;
-use std::fs::read_to_string;
-use std::path::PathBuf;
-use std::{error::Error, fs};
+use std::{
+    error::Error,
+    fs::{read_to_string, write},
+    path::PathBuf,
+};
 use yaml_rust::{Yaml, YamlLoader};
 
 pub trait Merge {
@@ -39,11 +41,14 @@ fn merge(a: &mut Value, b: &Value) {
     }
 }
 
-fn convert_to_node_vec(
-    yaml_data: &yaml_rust::Yaml,
-) -> Result<(Vec<serde_json::Value>, Vec<String>), Box<dyn Error>> {
+struct NodeData {
+    node_list: Vec<serde_json::Value>,
+    tag_list: Vec<String>,
+}
+
+fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Result<NodeData, Box<dyn Error>> {
     let mut node_list: Vec<serde_json::Value> = vec![];
-    let mut nodename_list: Vec<String> = vec![];
+    let mut tag_list: Vec<String> = vec![];
 
     for (index, per_node) in yaml_data["proxies"].clone().into_iter().enumerate() {
         let param_str = |eter: &str| match per_node[eter].to_owned().into_string() {
@@ -100,13 +105,13 @@ fn convert_to_node_vec(
                     } else {
                         false
                     },
-                    server_name: if per_node["sni"].to_owned().into_string().is_some() {
+                    server_name: if let Some(_) = per_node["sni"].to_owned().into_string() {
                         Some(param_str("sni"))
                     } else {
                         None
                     },
                     insecure: false, // default false, turn on manual if needed
-                    alpn: if per_node["alpn"].to_owned().into_string().is_some() {
+                    alpn: if let Some(_) = per_node["alpn"].to_owned().into_string() {
                         Some(vec!["h2".to_string()])
                     } else {
                         None
@@ -118,16 +123,8 @@ fn convert_to_node_vec(
                         fingerprint: "chrome".to_string(),
                     },
 
-                    certificate_path: if let Some(i) = per_node["ca"].to_owned().into_string() {
-                        Some(i)
-                    } else {
-                        None
-                    },
-                    certificate: if let Some(i) = per_node["ca_str"].to_owned().into_string() {
-                        Some(i)
-                    } else {
-                        None
-                    },
+                    certificate_path: per_node["ca"].to_owned().into_string(),
+                    certificate: per_node["ca_str"].to_owned().into_string(),
                 })
             } else {
                 None
@@ -284,9 +281,12 @@ fn convert_to_node_vec(
             .to_owned(),
             // TYPE FROM CLASH => STRUCT NAME
         );
-        nodename_list.push(per_node["name"].to_owned().into_string().unwrap())
+        tag_list.push(per_node["name"].to_owned().into_string().unwrap())
     }
-    Ok((node_list, nodename_list))
+    Ok(NodeData {
+        node_list,
+        tag_list,
+    })
 }
 
 fn read_yaml(yaml_path: PathBuf) -> yaml_rust::Yaml {
@@ -362,18 +362,18 @@ fn main() {
     });
 
     let valued_nodes_json = serde_json::to_value(&match node_vec {
-        Ok(ref i) => i.0.clone(),
+        Ok(ref i) => i.node_list.clone(),
         Err(e) => panic!("{}", e),
     })
     .unwrap();
 
     let valued_names_json = serde_json::to_value(&match node_vec {
-        Ok(ref i) => i.1.clone(),
+        Ok(ref i) => i.tag_list.clone(),
         Err(e) => panic!("{}", e),
     });
 
     if let Ok(ref i) = valued_names_json {
-        println!("Node name list:\n\n\n{}\n", i.to_string());
+        println!("Node name list:\n\n{}\n", i.to_string());
     };
 
     match args.gen_profile {
@@ -390,11 +390,14 @@ fn main() {
             };
 
             if let Some(i) = args.output {
-                fs::write(&i, j.as_bytes()).unwrap();
+                write(&i, j.as_bytes()).unwrap();
                 println!(
                     "\nMinimal avaliable sing-box config had been successful written into {}",
                     i
                 )
+            } else {
+                println!("\nMinimal configuration:");
+                println!("\n{}", j);
             }
         }
         false => {
@@ -406,7 +409,7 @@ fn main() {
             println!("sing-box client outbound:\n\n\n{}", j);
 
             if let Some(i) = args.output {
-                fs::write(&i, j.as_bytes()).unwrap();
+                write(&i, j.as_bytes()).unwrap();
                 println!("\n\n\nSuccessful written into {}", i)
             }
         }

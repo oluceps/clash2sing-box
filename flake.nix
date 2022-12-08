@@ -34,6 +34,7 @@
           CARGO_BUILD_TARGET = target;
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER =
             "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/${target}-gcc";
+#          RUSTFLAGS = [ "-C" "link-arg=-fuse-ld=${pkgs.mold}/bin/mold"];
 
           nativeBuildInputs = with pkgs;[ pkg-config ];
 
