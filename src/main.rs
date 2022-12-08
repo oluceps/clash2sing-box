@@ -41,11 +41,14 @@ fn merge(a: &mut Value, b: &Value) {
     }
 }
 
-fn convert_to_node_vec(
-    yaml_data: &yaml_rust::Yaml,
-) -> Result<(Vec<serde_json::Value>, Vec<String>), Box<dyn Error>> {
+struct NodeData {
+    node_list: Vec<serde_json::Value>,
+    tag_list: Vec<String>,
+}
+
+fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Result<NodeData, Box<dyn Error>> {
     let mut node_list: Vec<serde_json::Value> = vec![];
-    let mut nodename_list: Vec<String> = vec![];
+    let mut tag_list: Vec<String> = vec![];
 
     for (index, per_node) in yaml_data["proxies"].clone().into_iter().enumerate() {
         let param_str = |eter: &str| match per_node[eter].to_owned().into_string() {
@@ -278,9 +281,12 @@ fn convert_to_node_vec(
             .to_owned(),
             // TYPE FROM CLASH => STRUCT NAME
         );
-        nodename_list.push(per_node["name"].to_owned().into_string().unwrap())
+        tag_list.push(per_node["name"].to_owned().into_string().unwrap())
     }
-    Ok((node_list, nodename_list))
+    Ok(NodeData {
+        node_list,
+        tag_list,
+    })
 }
 
 fn read_yaml(yaml_path: PathBuf) -> yaml_rust::Yaml {
@@ -356,13 +362,13 @@ fn main() {
     });
 
     let valued_nodes_json = serde_json::to_value(&match node_vec {
-        Ok(ref i) => i.0.clone(),
+        Ok(ref i) => i.node_list.clone(),
         Err(e) => panic!("{}", e),
     })
     .unwrap();
 
     let valued_names_json = serde_json::to_value(&match node_vec {
-        Ok(ref i) => i.1.clone(),
+        Ok(ref i) => i.tag_list.clone(),
         Err(e) => panic!("{}", e),
     });
 
