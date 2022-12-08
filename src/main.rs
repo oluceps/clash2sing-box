@@ -106,7 +106,8 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Result<NodeData, Box<dyn 
                         .into_string()
                         .map(|_| vec!["h2".to_string()]),
 
-                    // Default enable utls to prevent potential attack. See https://github.com/net4people/bbs/issues/129
+                    // Default enable utls to prevent potential attack.
+                    // See https://github.com/net4people/bbs/issues/129
                     utls: UTLS {
                         enabled: true,
                         fingerprint: "chrome".to_string(),
