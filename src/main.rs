@@ -50,7 +50,7 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Result<NodeData, Box<dyn 
     let mut node_list: Vec<serde_json::Value> = vec![];
     let mut tag_list: Vec<String> = vec![];
 
-    for (index, per_node) in yaml_data["proxies"].clone().into_iter().enumerate() {
+    for per_node in yaml_data["proxies"].clone().into_iter() {
         let param_str = |eter: &str| match per_node[eter].to_owned().into_string() {
             Some(i) => i,
             None => panic!("{} not exist!", eter),
@@ -78,12 +78,9 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Result<NodeData, Box<dyn 
             _ => None,
         };
 
-        let named = || {
-            per_node["name"].to_owned().into_string().unwrap_or(format!(
-                "{}-{}",
-                per_node["type"].to_owned().into_string().unwrap(),
-                index
-            ))
+        let named = || match per_node["name"].to_owned().into_string() {
+            Some(i) => i,
+            None => panic!("clash config error: no name could be found!"),
         };
 
         let parse_tls = || {
@@ -140,13 +137,13 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Result<NodeData, Box<dyn 
                     _ => Some("tcp".to_string()),
                 },
                 udp_over_tcp: false,
-                //                multiplex: Some(Multiplex {
-                //                    enable: false,
-                //                    protocol: "smux".to_string(),
-                //                    max_connections: 0,
-                //                    min_streams: 0,
-                //                    max_streams: 0,
-                //                }),
+                // multiplex: Some(Multiplex {
+                //     enable: false,
+                //     protocol: "smux".to_string(),
+                //     max_connections: 0,
+                //     min_streams: 0,
+                //     max_streams: 0,
+                // }),
             },
 
             "ssr" => AvalProtocals::Shadowsocksr {
