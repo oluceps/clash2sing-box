@@ -266,6 +266,8 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Result<NodeData, Box<dyn 
                 "hysteria" => "Hysteria",
                 "vmess" => "VMess",
                 "ssr" => "Shadowsocksr",
+                "vless" => continue,
+                "tuic" => continue,
                 i => i,
             }]
             .to_owned(),
