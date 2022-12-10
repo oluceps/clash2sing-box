@@ -1,4 +1,4 @@
-[中文](README_CN.md) | English  
+[中文(zh-cn)](README_CN.md) | English  
 
 ## Converting Supports  
 - [x]  Shadowsocks  
