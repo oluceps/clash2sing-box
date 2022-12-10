@@ -34,7 +34,7 @@
           CARGO_BUILD_TARGET = target;
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER =
             "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/${target}-gcc";
-#          RUSTFLAGS = [ "-C" "link-arg=-fuse-ld=${pkgs.mold}/bin/mold"];
+          #          RUSTFLAGS = [ "-C" "link-arg=-fuse-ld=${pkgs.mold}/bin/mold"];
 
           nativeBuildInputs = with pkgs;[ pkg-config ];
 
@@ -65,7 +65,17 @@
         (b { inherit target system; }).pkg;
 
       devShells.default = with nixpkgs.legacyPackages.${system}; mkShell {
-        nativeBuildInputs = [ openssl.dev pkg-config ];
+        nativeBuildInputs = [
+          (fenix.packages.${system}.complete.withComponents [
+            "cargo"
+            "clippy"
+            "rust-src"
+            "rustc"
+            "rustfmt"
+          ])
+          openssl.dev
+          pkg-config
+        ];
       };
     });
 
