@@ -120,6 +120,9 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Result<NodeData, Box<dyn 
                 None
             }
         };
+
+        let parse_transport = || match per_node["network"].to_owned().into_string {};
+
         let tobe_node = match per_node["type"].to_owned().into_string().unwrap().as_str() {
             "ss" => AvalProtocals::Shadowsocks {
                 r#type: "shadowsocks".to_string(),
@@ -248,6 +251,7 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Result<NodeData, Box<dyn 
                     Some("tcp".to_string())
                 },
                 tls: parse_tls(),
+                transport: parse_transport(),
             },
 
             &_ => todo!(),

@@ -121,6 +121,8 @@ pub enum AvalProtocals {
         network: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
         tls: Option<TLS>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        transport: Option<Transport>,
     },
     //    ShadowTLS,
     //    ShadowsocksR,
@@ -160,4 +162,24 @@ pub struct Multiplex {
     pub max_connections: u16,
     pub min_streams: u16,
     pub max_streams: u16,
+}
+
+// v2ray transport in sing-box
+#[derive(Debug, Serialize)]
+pub struct Transport {
+    pub r#type: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub host: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub path: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub method: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub header: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_early_data: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub early_data_header_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub service_name: Option<String>,
 }
