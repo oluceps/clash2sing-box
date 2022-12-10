@@ -106,7 +106,8 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Result<NodeData, Box<dyn 
                         .into_string()
                         .map(|_| vec!["h2".to_string()]),
 
-                    // Default enable utls to prevent potential attack. See https://github.com/net4people/bbs/issues/129
+                    // Default enable utls to prevent potential attack.
+                    // See https://github.com/net4people/bbs/issues/129
                     utls: UTLS {
                         enabled: true,
                         fingerprint: "chrome".to_string(),
@@ -119,6 +120,58 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Result<NodeData, Box<dyn 
                 None
             }
         };
+
+        let parse_transport = || match per_node["network"].to_owned().into_string() {
+            Some(i) => match i.as_str() {
+                "http" => Some(Transport {
+                    r#type: "http".to_string(),
+                    host: None,
+                    path: per_node["http-opts"]["path"][0].to_owned().into_string(),
+                    method: per_node["http-ops"]["method"].to_owned().into_string(),
+                    header: None,
+                    max_early_data: None,
+                    early_data_header_name: None,
+                    service_name: None,
+                }),
+                "ws" => Some(Transport {
+                    r#type: "ws".to_string(),
+                    host: None,
+                    path: per_node["ws-opts"]["path"].to_owned().into_string(),
+                    method: None,
+                    header: None,
+                    max_early_data: match per_node["ws-opts"]["max-early-data"]
+                        .to_owned()
+                        .into_string()
+                    {
+                        Some(i) => match i.to_owned().parse::<u32>() {
+                            Ok(i) => Some(i),
+                            Err(_) => None,
+                        },
+                        None => None,
+                    },
+                    early_data_header_name: per_node["ws-opts"]["early-data-header-name"]
+                        .to_owned()
+                        .into_string(),
+                    service_name: None,
+                }),
+
+                "grpc" => Some(Transport {
+                    r#type: "grpc".to_string(),
+                    host: None,
+                    path: None,
+                    method: None,
+                    header: None,
+                    max_early_data: None,
+                    early_data_header_name: None,
+                    service_name: per_node["grpc-opts"]["grpc-service-name"]
+                        .to_owned()
+                        .into_string(),
+                }),
+                &_ => todo!(),
+            },
+            None => todo!(),
+        };
+
         let tobe_node = match per_node["type"].to_owned().into_string().unwrap().as_str() {
             "ss" => AvalProtocals::Shadowsocks {
                 r#type: "shadowsocks".to_string(),
@@ -247,6 +300,7 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Result<NodeData, Box<dyn 
                     Some("tcp".to_string())
                 },
                 tls: parse_tls(),
+                transport: parse_transport(),
             },
 
             &_ => todo!(),
@@ -265,6 +319,8 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Result<NodeData, Box<dyn 
                 "hysteria" => "Hysteria",
                 "vmess" => "VMess",
                 "ssr" => "Shadowsocksr",
+                "vless" => continue,
+                "tuic" => continue,
                 i => i,
             }]
             .to_owned(),
@@ -313,10 +369,6 @@ struct Args {
     /// Get clash subscription profile by url
     #[arg(short, long, value_name = "URL")]
     subscribe: Option<String>,
-
-    /// (unimplement) Read content of clash format proxies list
-    #[arg(short, long)]
-    content: Option<String>,
 
     /// Output pretty-printed indented JSON
     #[arg(short = 'f')]

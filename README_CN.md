@@ -38,7 +38,6 @@ Usage: clash2sing-box [OPTIONS]
 Options:
   -p, --path <PATH>        Read path of clash format config.yaml file
   -s, --subscribe <URL>    Get clash subscription profile by url
-  -c, --content <CONTENT>  (unimplement) Read content of clash format proxies list
   -f                       Output pretty-printed indented JSON
   -g, --gen-profile        Generate minimal avaliable sing-box JSON profile
   -o, --output <PATH>      Output sing-box JSON profile
