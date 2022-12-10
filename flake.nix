@@ -65,7 +65,7 @@
         (b { inherit target system; }).pkg;
 
       devShells.default = with nixpkgs.legacyPackages.${system}; mkShell {
-        nativeBuildInputs = [ rustup openssl.dev pkg-config ];
+        nativeBuildInputs = [ openssl.dev pkg-config ];
       };
     });
 
