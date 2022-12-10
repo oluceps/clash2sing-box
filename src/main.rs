@@ -121,7 +121,56 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Result<NodeData, Box<dyn 
             }
         };
 
-        let parse_transport = || match per_node["network"].to_owned().into_string {};
+        let parse_transport = || match per_node["network"].to_owned().into_string() {
+            Some(i) => match i.as_str() {
+                "http" => Some(Transport {
+                    r#type: "http".to_string(),
+                    host: None,
+                    path: per_node["http-opts"]["path"][0].to_owned().into_string(),
+                    method: per_node["http-ops"]["method"].to_owned().into_string(),
+                    header: None,
+                    max_early_data: None,
+                    early_data_header_name: None,
+                    service_name: None,
+                }),
+                "ws" => Some(Transport {
+                    r#type: "ws".to_string(),
+                    host: None,
+                    path: per_node["ws-opts"]["path"].to_owned().into_string(),
+                    method: None,
+                    header: None,
+                    max_early_data: match per_node["ws-opts"]["max-early-data"]
+                        .to_owned()
+                        .into_string()
+                    {
+                        Some(i) => match i.to_owned().parse::<u32>() {
+                            Ok(i) => Some(i),
+                            Err(_) => None,
+                        },
+                        None => None,
+                    },
+                    early_data_header_name: per_node["ws-opts"]["early-data-header-name"]
+                        .to_owned()
+                        .into_string(),
+                    service_name: None,
+                }),
+
+                "grpc" => Some(Transport {
+                    r#type: "grpc".to_string(),
+                    host: None,
+                    path: None,
+                    method: None,
+                    header: None,
+                    max_early_data: None,
+                    early_data_header_name: None,
+                    service_name: per_node["grpc-opts"]["grpc-service-name"]
+                        .to_owned()
+                        .into_string(),
+                }),
+                &_ => todo!(),
+            },
+            None => todo!(),
+        };
 
         let tobe_node = match per_node["type"].to_owned().into_string().unwrap().as_str() {
             "ss" => AvalProtocals::Shadowsocks {
