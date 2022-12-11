@@ -124,10 +124,23 @@ pub enum AvalProtocals {
         #[serde(skip_serializing_if = "Option::is_none")]
         transport: Option<Transport>,
     },
-    //    ShadowTLS,
-    //    ShadowsocksR,
-    //    Tor,
-    //    SSH,
+
+    Vless {
+        r#type: String,
+        server: String,
+        server_port: u16,
+        uuid: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        network: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        tls: Option<TLS>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        packet_encoding: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        transport: Option<Transport>,
+    },
+    // ShadowTLS,
+    // tuic
 }
 #[allow(unused)]
 #[derive(Debug, Serialize)]
