@@ -127,6 +127,7 @@ pub enum AvalProtocals {
 
     Vless {
         r#type: String,
+        tag: String,
         server: String,
         server_port: u16,
         uuid: String,

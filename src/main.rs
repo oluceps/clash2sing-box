@@ -88,15 +88,19 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Result<NodeData, Box<dyn 
                 Some(TLS {
                     enabled: !(per_node["sni"].is_null()
                         | per_node["alpn"].is_null()
-                        | per_node["skip-cert-verify"].is_null()),
+                        | per_node["skip-cert-verify"].is_null()
+                        | per_node["servername"].is_null()),
 
                     disable_sni: per_node["sni"].to_owned().into_string()
                         == Some("true".to_string()),
 
-                    server_name: per_node["sni"]
-                        .to_owned()
-                        .into_string()
-                        .map(|_| param_str("sni")),
+                    server_name: match per_node["sni"].to_owned().into_string() {
+                        Some(_) => Some(param_str("sni")),
+                        None => match per_node["servername"].to_owned().into_string() {
+                            Some(_) => Some(param_str("servername")),
+                            None => None,
+                        },
+                    },
 
                     // Default to be false, turn on manually if needed
                     insecure: false,
@@ -303,6 +307,21 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Result<NodeData, Box<dyn 
                 transport: parse_transport(),
             },
 
+            "vless" => AvalProtocals::Vless {
+                r#type: "vless".to_string(),
+                tag: named(),
+                server: param_str("server"),
+                server_port: param_int("port"),
+                uuid: param_str("uuid"),
+                network: if !per_node["udp"].is_null() {
+                    None
+                } else {
+                    Some("tcp".to_string())
+                },
+                tls: parse_tls(),
+                packet_encoding: None,
+                transport: parse_transport(),
+            },
             &_ => todo!(),
         };
 
@@ -319,7 +338,7 @@ fn convert_to_node_vec(yaml_data: &yaml_rust::Yaml) -> Result<NodeData, Box<dyn 
                 "hysteria" => "Hysteria",
                 "vmess" => "VMess",
                 "ssr" => "Shadowsocksr",
-                "vless" => continue,
+                "vless" => "Vless",
                 "tuic" => continue,
                 i => i,
             }]
