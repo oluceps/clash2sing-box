@@ -7,9 +7,9 @@
 - [x]  VMess  
 - [x]  Trojan  
 - [x]  Hysteria  
-- [ ]  ~~ShadowTLS~~      `Clash.Meta` 暂不支持 `Shadow-tls`   
+- [x]  ~~VLESS~~          `VLESS` 已经被官方弃用。见[详情](https://www.v2fly.org/v5/config/proxy/vless.html)  
 - [x]  ShadowsocksR     
-- [ ]  ~~VLESS~~          `VLESS` 已经被官方弃用。见[详情](https://www.v2fly.org/v5/config/proxy/vless.html)  
+- [ ]  ~~ShadowTLS~~      `Clash.Meta` 暂不支持 `Shadow-tls`   
 
 > 解析`clash`订阅链接 并生成格式化后的`sing-box`最小配置文件  
 ```console
