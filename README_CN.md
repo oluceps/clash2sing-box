@@ -1,6 +1,6 @@
 中文 | [English](README.md)   
 
-## 支持以下协议的转换  
+## 支持以下协议outbound的转换  
 - [x]  Shadowsocks  
 - [x]  http  
 - [x]  socks  

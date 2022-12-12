@@ -1,6 +1,6 @@
 [中文(zh-cn)](README_CN.md) | English  
 
-## Converting Supports  
+## Outbound converting Supports  
 - [x]  Shadowsocks  
 - [x]  http  
 - [x]  socks  
