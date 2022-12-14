@@ -140,8 +140,12 @@ pub enum AvalProtocals {
         #[serde(skip_serializing_if = "Option::is_none")]
         transport: Option<Transport>,
     },
-    // ShadowTLS,
-    // tuic
+
+    Tuic {
+        r#type: String,
+        tag: String,
+    }, // ShadowTLS,
+       // tuic
 }
 #[allow(unused)]
 #[derive(Debug, Serialize)]

@@ -1,6 +1,6 @@
 [中文(zh-cn)](README_CN.md) | English  
 
-## Converting Supports  
+## Outbound converting Supports  
 - [x]  Shadowsocks  
 - [x]  http  
 - [x]  socks  
@@ -8,8 +8,9 @@
 - [x]  Trojan  
 - [x]  Hysteria  
 - [x]  ShadowsocksR     
-- [x]  ~~VLESS~~          `VLESS` had been abandoned officially. See [detail](https://www.v2fly.org/v5/config/proxy/vless.html)  
-- [ ]  ~~ShadowTLS~~      `Clash.Meta` not support `Shadow-tls` yet  
+- [x]  VLESS          `VLESS` had been abandoned officially. See [detail](https://www.v2fly.org/v5/config/proxy/vless.html)  
+- [ ]  TUIC           `sing-box` not support `tuic` yet  
+- [ ]  ShadowTLS      `Clash.Meta` not support `Shadow-tls` yet  
 
 > to parse clash subscribe link and generate pretty-printed indented minimal avaliable sing-box profile  
 ```console
