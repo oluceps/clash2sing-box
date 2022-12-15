@@ -7,7 +7,7 @@
 - [x]  VMess  
 - [x]  Trojan  
 - [x]  Hysteria  
-- [x]  VLESS          `VLESS` 已经被官方弃用。见[详情](https://www.v2fly.org/v5/config/proxy/vless.html)  
+- [x]  VLESS          `VLESS` 已被弃用并且可能被移除。请考虑使用 Trojan 作为替代品。见[详情](https://www.v2fly.org/v5/config/proxy/vless.html)  
 - [x]  ShadowsocksR     
 - [ ]  TUIC           `sing-box` 暂不支持 `tuic`    
 - [ ]  ShadowTLS      `Clash.Meta` 暂不支持 `Shadow-tls`   
