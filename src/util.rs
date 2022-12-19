@@ -195,7 +195,7 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
             },
 
             "ssr" => AvalProtocals::Shadowsocksr {
-                r#type: "shadowsocks".to_string(),
+                r#type: "shadowsocksr".to_string(),
                 tag: named(),
                 server: param_str("server"),
                 server_port: param_int("port"),
