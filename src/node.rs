@@ -2,7 +2,7 @@ use serde::Serialize;
 
 #[allow(dead_code)]
 #[derive(Debug, Serialize)]
-pub enum AvalProtocals {
+pub enum AvalProtocols {
     Socks {
         r#type: String,
         tag: String,
