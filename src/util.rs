@@ -168,7 +168,7 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
         };
 
         let tobe_node = match per_node["type"].to_owned().into_string().unwrap().as_str() {
-            "ss" => AvalProtocals::Shadowsocks {
+            "ss" => AvalProtocols::Shadowsocks {
                 r#type: "shadowsocks".to_string(),
                 tag: named(),
                 server: param_str("server"),
@@ -194,7 +194,7 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
                 // }),
             },
 
-            "ssr" => AvalProtocals::Shadowsocksr {
+            "ssr" => AvalProtocols::Shadowsocksr {
                 r#type: "shadowsocksr".to_string(),
                 tag: named(),
                 server: param_str("server"),
@@ -211,7 +211,7 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
                 },
             },
 
-            "socks5" => AvalProtocals::Socks {
+            "socks5" => AvalProtocols::Socks {
                 r#type: "socks".to_string(),
                 tag: named(),
                 server: param_str("server"),
@@ -227,7 +227,7 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
                 udp_over_tcp: false,
             },
 
-            "http" => AvalProtocals::HTTP {
+            "http" => AvalProtocols::HTTP {
                 r#type: "http".to_string(),
                 tag: named(),
                 server: param_str("server"),
@@ -237,7 +237,7 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
                 tls: parse_tls(),
             },
 
-            "trojan" => AvalProtocals::Trojan {
+            "trojan" => AvalProtocols::Trojan {
                 r#type: "trojan".to_string(),
                 tag: named(),
                 server: param_str("server"),
@@ -251,7 +251,7 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
                 tls: parse_tls(),
             },
 
-            "hysteria" => AvalProtocals::Hysteria {
+            "hysteria" => AvalProtocols::Hysteria {
                 r#type: "hysteria".to_string(),
                 tag: named(),
                 server: param_str("server"),
@@ -275,7 +275,7 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
                 tls: parse_tls(),
             },
 
-            "vmess" => AvalProtocals::VMess {
+            "vmess" => AvalProtocols::VMess {
                 r#type: "vmess".to_string(),
                 tag: named(),
                 server: param_str("server"),
@@ -298,7 +298,7 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
                 transport: parse_transport(),
             },
 
-            "vless" => AvalProtocals::Vless {
+            "vless" => AvalProtocols::Vless {
                 r#type: "vless".to_string(),
                 tag: named(),
                 server: param_str("server"),
