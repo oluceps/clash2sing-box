@@ -16,28 +16,28 @@
 
 Parse clash subscribe link and generate pretty-printed indented minimal avaliable sing-box profile  
 ```console
-./clash2sing-box --subscribe "<URL>" -g -f -o ./config.json
+./ctos --subscribe "<URL>" -g -f -o ./config.json
 ```  
 
 Parse clash subscribe link  
 ```console  
-./clash2sing-box --subscribe "<URL>"  
+./ctos --subscribe "<URL>"  
 ```
 
 Parse clash `config.yaml`  
 ```console
-./clash2sing-box --path <PATH TO config.yaml>  
+./ctos --path <PATH TO config.yaml>  
 ```   
 
 Converting clash profile to minimal sing-box profile  
 ```console
-./clash2sing-box --path <PATH TO config.yaml> -g -f -o ./config.json   
+./ctos --path <PATH TO config.yaml> -g -f -o ./config.json   
 ```
 
 ## Commands  
 ```console
-> ./clash2sing-box --help
-Usage: clash2sing-box [OPTIONS]
+> ./ctos --help
+Usage: ctos [OPTIONS]
 
 Options:
   -p, --path <PATH>        Read path of clash format config.yaml file
