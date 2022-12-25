@@ -14,7 +14,7 @@
 
 ---
 
-Parse clash subscribe link and generate pretty-printed indented minimal avaliable sing-box profile  
+Generate pretty-printed indented minimal avaliable `sing-box` profile from `clash` subscription   
 ```console
 ./ctos --subscribe "<URL>" -g -f -o ./config.json
 ```  
