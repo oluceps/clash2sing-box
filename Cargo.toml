@@ -1,6 +1,6 @@
 [package]
-name = "clash2sing-box"
-version = "0.2.2"
+name = "ctos"
+version = "0.2.3"
 edition = "2021"
 
 [profile.release]

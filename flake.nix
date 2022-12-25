@@ -47,7 +47,7 @@
           ];
 
           postInstall = ''
-            mv $out/bin/clash2sing-box $out/bin/clash2sing-box-${target}
+            mv $out/bin/ctos $out/bin/ctos-${target}
           '';
         };
     }; in
