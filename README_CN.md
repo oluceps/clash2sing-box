@@ -12,6 +12,8 @@
 - [ ]  TUIC           `sing-box` 暂不支持 `tuic`    
 - [ ]  ShadowTLS      `Clash.Meta` 暂不支持 `Shadow-tls`   
 
+---
+
 解析`clash`订阅链接 并生成格式化后的`sing-box`最小配置文件  
 ```console
 ./clash2sing-box --subscribe "<URL>" -g -f -o ./config.json
