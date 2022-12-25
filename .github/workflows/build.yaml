@@ -1,0 +1,17 @@
+name: build
+on: [ push ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: cachix/install-nix-action@v17
+    - run: |
+        nix develop -c cargo build --release
+    - uses: marvinpinto/action-automatic-releases@latest
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest"
+        prerelease: true
+        files: |
+          target/release/ctos

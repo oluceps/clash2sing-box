@@ -82,19 +82,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "clash2sing-box"
-version = "0.2.2"
-dependencies = [
- "clap",
- "futures",
- "reqwest",
- "serde",
- "serde_json",
- "serde_yaml",
- "yaml-rust",
-]
-
-[[package]]
 name = "core-foundation"
 version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -109,6 +96,19 @@ name = "core-foundation-sys"
 version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5827cebf4670468b8772dd191856768aedcb1b0278a04f989f7766351917b9dc"
+
+[[package]]
+name = "ctos"
+version = "0.2.3"
+dependencies = [
+ "clap",
+ "futures",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "yaml-rust",
+]
 
 [[package]]
 name = "encoding_rs"

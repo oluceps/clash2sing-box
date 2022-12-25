@@ -331,7 +331,7 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
                 "ssr" => "Shadowsocksr",
                 "vless" => "Vless",
                 "tuic" => continue,
-                i => continue,
+                _ => continue,
             }]
             .to_owned(),
             // TYPE FROM CLASH => STRUCT NAME
