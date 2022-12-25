@@ -34,6 +34,7 @@
 ./clash2sing-box --path <PATH TO config.yaml> -g -f -o ./config.json   
 ```
    
+## 命令选项
 ```console
 > ./clash2sing-box --help
 Usage: clash2sing-box [OPTIONS]

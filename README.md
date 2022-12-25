@@ -34,6 +34,7 @@ Converting clash profile to minimal sing-box profile
 ./clash2sing-box --path <PATH TO config.yaml> -g -f -o ./config.json   
 ```
 
+## Commands  
 ```console
 > ./clash2sing-box --help
 Usage: clash2sing-box [OPTIONS]
