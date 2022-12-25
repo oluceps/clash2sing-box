@@ -12,22 +12,22 @@
 - [ ]  TUIC           `sing-box` not support `tuic` yet  
 - [ ]  ShadowTLS      `Clash.Meta` not support `Shadow-tls` yet  
 
-> to parse clash subscribe link and generate pretty-printed indented minimal avaliable sing-box profile  
+Parse clash subscribe link and generate pretty-printed indented minimal avaliable sing-box profile  
 ```console
 ./clash2sing-box --subscribe "<URL>" -g -f -o ./config.json
 ```  
 
-> to parse clash subscribe link  
+Parse clash subscribe link  
 ```console  
 ./clash2sing-box --subscribe "<URL>"  
 ```
 
-> to parse clash `config.yaml`  
+Parse clash `config.yaml`  
 ```console
 ./clash2sing-box --path <PATH TO config.yaml>  
 ```   
 
-> converting clash profile to minimal sing-box profile  
+Converting clash profile to minimal sing-box profile  
 ```console
 ./clash2sing-box --path <PATH TO config.yaml> -g -f -o ./config.json   
 ```
