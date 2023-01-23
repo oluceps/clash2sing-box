@@ -164,7 +164,7 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
                 }),
                 &_ => todo!(),
             },
-            None => todo!(),
+            None => None,
         };
 
         let tobe_node = match per_node["type"].to_owned().into_string().unwrap().as_str() {
@@ -281,7 +281,7 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
                 server: param_str("server"),
                 server_port: param_int("port"),
                 uuid: param_str("uuid"),
-                security: None,
+                security: Some("auto".to_string()),
                 alter_id: if per_node["alertId"].to_owned().into_string().is_some() {
                     Some(param_int("alertId").into())
                 } else {
@@ -366,4 +366,25 @@ pub fn get_subscribe(sublink: &str) -> Result<String, reqwest::Error> {
     let client = reqwest::blocking::Client::new();
     let res = client.get(sublink).header(USER_AGENT, "clash").send()?;
     res.text()
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::convert_to_node_vec;
+    use yaml_rust::YamlLoader;
+
+    #[test]
+    fn vmess_without_network_opt() {
+        static YAML_TESTCASE_STR: &str = r#"proxies:
+  - {"server":"server","port": 2,"uuid":"uuid","udp":true,"name":"name","type":"vmess","alterId":0}
+        "#;
+
+        let vmess_data = &YamlLoader::load_from_str(YAML_TESTCASE_STR).unwrap()[0];
+
+        assert!(if let Ok(_) = convert_to_node_vec(vmess_data) {
+            true
+        } else {
+            false
+        });
+    }
 }
