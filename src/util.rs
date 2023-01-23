@@ -75,12 +75,12 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
         };
 
         let parse_tls = || {
-            if !per_node["tls"].is_null() {
+            if !per_node["tls"].is_badvalue() {
                 Some(TLS {
-                    enabled: !(per_node["sni"].is_null()
-                        | per_node["alpn"].is_null()
-                        | per_node["skip-cert-verify"].is_null()
-                        | per_node["servername"].is_null()),
+                    enabled: !(per_node["sni"].is_badvalue()
+                        | per_node["alpn"].is_badvalue()
+                        | per_node["skip-cert-verify"].is_badvalue()
+                        | per_node["servername"].is_badvalue()),
 
                     disable_sni: per_node["sni"].to_owned().into_string()
                         == Some("true".to_string()),
