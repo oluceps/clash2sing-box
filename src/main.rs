@@ -8,18 +8,6 @@ use std::{fs::write, path::PathBuf};
 use util::*;
 use yaml_rust::YamlLoader;
 
-impl Merge for Value {
-    fn merge(&mut self, new_json_value: Value) {
-        merge(self, &new_json_value);
-    }
-}
-
-impl Convert for Yaml {
-    fn convert(&self) -> Result<NodeData, Box<dyn std::error::Error>> {
-        convert_to_node_vec(self)
-    }
-}
-
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {

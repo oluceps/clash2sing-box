@@ -9,6 +9,21 @@ pub trait Merge {
     fn merge(&mut self, new_json_value: Value);
 }
 
+pub struct NodeData {
+    pub node_list: Vec<Value>,
+    pub tag_list: Vec<String>,
+}
+
+pub trait Convert {
+    fn convert(&self) -> Result<NodeData, Box<dyn Error>>;
+}
+
+impl Convert for Yaml {
+    fn convert(&self) -> Result<NodeData, Box<dyn std::error::Error>> {
+        convert_to_node_vec(self)
+    }
+}
+
 pub fn merge(a: &mut Value, b: &Value) {
     match (a, b) {
         (Value::Object(ref mut a), &Value::Object(ref b)) => {
@@ -28,13 +43,10 @@ pub fn merge(a: &mut Value, b: &Value) {
     }
 }
 
-pub struct NodeData {
-    pub node_list: Vec<Value>,
-    pub tag_list: Vec<String>,
-}
-
-pub trait Convert {
-    fn convert(&self) -> Result<NodeData, Box<dyn Error>>;
+impl Merge for Value {
+    fn merge(&mut self, new_json_value: Value) {
+        merge(self, &new_json_value);
+    }
 }
 
 pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>> {
