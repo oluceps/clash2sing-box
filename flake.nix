@@ -73,6 +73,7 @@
             "rustc"
             "rustfmt"
           ])
+          cargo-zigbuild
           openssl.dev
           pkg-config
         ];
