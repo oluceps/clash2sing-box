@@ -17,7 +17,7 @@ pub enum AvalProtocols {
         network: Option<String>,
         udp_over_tcp: bool,
     },
-    HTTP {
+    Http {
         r#type: String,
         tag: String,
         server: String,
@@ -27,7 +27,7 @@ pub enum AvalProtocols {
         #[serde(skip_serializing_if = "Option::is_none")]
         password: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        tls: Option<TLS>,
+        tls: Option<Tls>,
     },
     Shadowsocks {
         r#type: String,
@@ -72,7 +72,7 @@ pub enum AvalProtocols {
         #[serde(skip_serializing_if = "Option::is_none")]
         network: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        tls: Option<TLS>,
+        tls: Option<Tls>,
     },
     Hysteria {
         r#type: String,
@@ -100,7 +100,7 @@ pub enum AvalProtocols {
         #[serde(skip_serializing_if = "Option::is_none")]
         disable_mtu_discovery: Option<bool>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        tls: Option<TLS>,
+        tls: Option<Tls>,
     },
 
     VMess {
@@ -120,7 +120,7 @@ pub enum AvalProtocols {
         #[serde(skip_serializing_if = "Option::is_none")]
         network: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        tls: Option<TLS>,
+        tls: Option<Tls>,
         #[serde(skip_serializing_if = "Option::is_none")]
         transport: Option<Transport>,
     },
@@ -134,7 +134,7 @@ pub enum AvalProtocols {
         #[serde(skip_serializing_if = "Option::is_none")]
         network: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        tls: Option<TLS>,
+        tls: Option<Tls>,
         #[serde(skip_serializing_if = "Option::is_none")]
         packet_encoding: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -149,7 +149,7 @@ pub enum AvalProtocols {
 }
 #[allow(unused)]
 #[derive(Debug, Serialize)]
-pub struct TLS {
+pub struct Tls {
     pub enabled: bool,
     pub disable_sni: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -157,7 +157,7 @@ pub struct TLS {
     pub insecure: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub alpn: Option<Vec<String>>,
-    pub utls: UTLS,
+    pub utls: Utls,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub certificate_path: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -167,7 +167,7 @@ pub struct TLS {
 // NOTICE: utls could be use only while enable with_utls build tag
 #[allow(unused)]
 #[derive(Debug, Serialize)]
-pub struct UTLS {
+pub struct Utls {
     pub enabled: bool,
     pub fingerprint: String,
 }

@@ -52,27 +52,26 @@ fn main() {
     })
     .convert();
 
-    let valued_nodes_json = to_value(&match node_vec {
+    let valued_nodes_json = to_value(match node_vec {
         Ok(ref i) => i.node_list.clone(),
         Err(e) => panic!("{}", e),
     })
     .unwrap();
 
-    let valued_names_json = to_value(&match node_vec {
+    let valued_names_json = to_value(match node_vec {
         Ok(ref i) => i.tag_list.clone(),
         Err(e) => panic!("{}", e),
     });
 
     if let Ok(ref i) = valued_names_json {
-        println!("Node name list:\n\n{}\n", i.to_string());
+        println!("Node name list:\n\n{}\n", i);
     };
 
     match args.gen_profile {
         true => {
             let mut paradigm_deserialized: Value = from_str(PARADIGM).unwrap();
-            paradigm_deserialized["outbounds"].merge(valued_nodes_json.clone());
-            paradigm_deserialized["outbounds"][1]["outbounds"]
-                .merge(valued_names_json.unwrap().clone());
+            paradigm_deserialized["outbounds"].merge(valued_nodes_json);
+            paradigm_deserialized["outbounds"][1]["outbounds"].merge(valued_names_json.unwrap());
 
             let j = match args.format {
                 true => to_string_pretty(&paradigm_deserialized).unwrap(),
