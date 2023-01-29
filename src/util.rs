@@ -88,7 +88,7 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
 
         let parse_tls = || {
             if !per_node["tls"].is_badvalue() {
-                Some(TLS {
+                Some(Tls {
                     enabled: !(per_node["tls"].is_badvalue()
                         & per_node["sni"].is_badvalue()
                         & per_node["alpn"].is_badvalue()
@@ -100,10 +100,10 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
 
                     server_name: match per_node["sni"].to_owned().into_string() {
                         Some(_) => Some(param_str("sni")),
-                        None => match per_node["servername"].to_owned().into_string() {
-                            Some(_) => Some(param_str("servername")),
-                            None => None,
-                        },
+                        None => per_node["servername"]
+                            .to_owned()
+                            .into_string()
+                            .map(|_| param_str("servername")),
                     },
 
                     // Default to be false, turn on manually if needed
@@ -116,7 +116,7 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
 
                     // Default enable utls to prevent potential attack.
                     // See https://github.com/net4people/bbs/issues/129
-                    utls: UTLS {
+                    utls: Utls {
                         enabled: true,
                         fingerprint: "chrome".to_string(),
                     },
@@ -151,7 +151,7 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
                         .to_owned()
                         .into_string()
                     {
-                        Some(i) => match i.to_owned().parse::<u32>() {
+                        Some(i) => match i.parse::<u32>() {
                             Ok(i) => Some(i),
                             Err(_) => None,
                         },
@@ -189,10 +189,10 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
                 method: param_str("cipher"),
                 password: param_str("password"),
                 plugin: optional("plugin"),
-                plugin_opts: match per_node["plugin"].to_owned().into_string() {
-                    Some(_) => Some(plugin_opts_to_string(per_node["plugin-opts"].to_owned())),
-                    None => None,
-                },
+                plugin_opts: per_node["plugin"]
+                    .to_owned()
+                    .into_string()
+                    .map(|_| plugin_opts_to_string(per_node["plugin-opts"].to_owned())),
                 network: match per_node["udp"].to_owned().into_string() {
                     Some(_) => None,
                     _ => Some("tcp".to_string()),
@@ -240,7 +240,7 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
                 udp_over_tcp: false,
             },
 
-            "http" => AvalProtocols::HTTP {
+            "http" => AvalProtocols::Http {
                 r#type: "http".to_string(),
                 tag: named(),
                 server: param_str("server"),
@@ -296,7 +296,7 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
                 uuid: param_str("uuid"),
                 security: Some("auto".to_string()),
                 alter_id: if per_node["alertId"].to_owned().into_string().is_some() {
-                    Some(param_int("alertId").into())
+                    Some(param_int("alertId"))
                 } else {
                     Some(0)
                 },
@@ -394,10 +394,6 @@ mod tests {
 
         let vmess_data = &YamlLoader::load_from_str(YAML_TESTCASE_STR).unwrap()[0];
 
-        assert!(if let Ok(_) = convert_to_node_vec(vmess_data) {
-            true
-        } else {
-            false
-        });
+        assert!(convert_to_node_vec(vmess_data).is_ok());
     }
 }
