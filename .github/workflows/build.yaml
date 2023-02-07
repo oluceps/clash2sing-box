@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
 
       - name: Install rust
         uses: actions-rs/toolchain@v1
@@ -31,10 +31,8 @@ jobs:
 
     strategy:
       matrix:
-        build: [stable, beta, nightly]
+        build: [stable, nightly]
         include:
-          - build: beta
-            rust: beta
           - build: nightly
             rust: nightly
             benches: true
@@ -75,13 +73,17 @@ jobs:
         target: [ aarch64-unknown-linux-gnu, aarch64-unknown-linux-musl, x86_64-unknown-linux-gnu, x86_64-unknown-linux-musl]
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
 
-      - name: Install Nix
-        uses: cachix/install-nix-action@v19
+      # - name: Install Nix
+      #   uses: cachix/install-nix-action@v19
 
-      - run: |
-          nix develop
+      # - run: |
+      #     nix develop
+      - name: deps
+        run: |
+          apt install libssl-dev
+
       - name: Build target
         uses: actions-rs/cargo@v1
         with:
