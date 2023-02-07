@@ -31,7 +31,7 @@ jobs:
 
     strategy:
       matrix:
-        build: [stable, nightly]
+        build: [nightly]
         include:
           - build: nightly
             rust: nightly
@@ -58,12 +58,6 @@ jobs:
           command: test
           args: ${{ matrix.features }}
 
-      # - name: Test all benches
-      #   if: matrix.benches
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: test
-      #     args: --benches ${{ matrix.features }}
   deploy:
     name: deploy
     needs: [test]
@@ -74,11 +68,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
-      # - name: Install Nix
-      #   uses: cachix/install-nix-action@v19
-      # - run: |
-      #     nix develop
 
       - name: Install rust
         uses: actions-rs/toolchain@v1
@@ -98,7 +87,7 @@ jobs:
         shell: bash
         run: |
           cd target/${{ matrix.target }}/release          
-          tar czvf ../../../clash2sing-box-${{ matrix.target }}.tar.gz ctos
+          tar czvf ../../../clash2sing-box-${{ matrix.target }}.tar.gz ctos*
           cd -
 
 

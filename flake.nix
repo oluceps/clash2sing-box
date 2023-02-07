@@ -47,7 +47,7 @@
             };
         devShells.default = pkgs.mkShell {
           inputsFrom = [ packages.default ];
-          nativeBuildInputs = with pkgs;[ cargo-zigbuild ];
+          nativeBuildInputs = with pkgs;[ cargo-zigbuild rustup ];
         };
       });
 
