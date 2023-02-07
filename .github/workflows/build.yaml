@@ -77,9 +77,16 @@ jobs:
 
       # - name: Install Nix
       #   uses: cachix/install-nix-action@v19
-
       # - run: |
       #     nix develop
+
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+          target: ${{ matrix.target }}
       - name: deps
         run: |
           apt install libssl-dev
