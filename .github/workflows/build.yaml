@@ -70,7 +70,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy: 
       matrix:
-        target: [ aarch64-unknown-linux-gnu, aarch64-unknown-linux-musl, x86_64-unknown-linux-gnu, x86_64-unknown-linux-musl]
+        target: [ aarch64-unknown-linux-gnu, aarch64-unknown-linux-musl, x86_64-unknown-linux-gnu, x86_64-unknown-linux-musl, x86_64-pc-windows-gnu]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -87,10 +87,6 @@ jobs:
           profile: minimal
           override: true
           target: ${{ matrix.target }}
-      - name: deps
-        run: |
-          sudo apt install libssl-dev
-
       - name: Build target
         uses: actions-rs/cargo@v1
         with:
@@ -102,7 +98,7 @@ jobs:
         shell: bash
         run: |
           cd target/${{ matrix.target }}/release          
-          tar czvf ../../../clash2sing-box-${{ matrix.target }}.tar.gz testmest
+          tar czvf ../../../clash2sing-box-${{ matrix.target }}.tar.gz ctos
           cd -
 
 
