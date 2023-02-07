@@ -41,11 +41,6 @@
                 lockFile = ./Cargo.lock;
               };
 
-              nativeBuildInputs = with pkgs;[ pkg-config ];
-
-              buildInputs = with pkgs; lib.optionals stdenv.isLinux [ openssl ]
-                ++ lib.optionals stdenv.isDarwin [ Security CoreServices ];
-
               postInstall = ''
                 mv $out/bin/ctos $out/bin/ctos-${system}
               '';
