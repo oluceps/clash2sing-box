@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install rust
         uses: actions-rs/toolchain@v1
@@ -39,7 +39,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v3
 
       - uses: cachix/install-nix-action@v19
 
@@ -67,7 +67,7 @@ jobs:
         target: [ aarch64-unknown-linux-gnu, aarch64-unknown-linux-musl, x86_64-unknown-linux-gnu, x86_64-unknown-linux-musl, x86_64-pc-windows-gnu]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install rust
         uses: actions-rs/toolchain@v1
@@ -89,13 +89,11 @@ jobs:
           cd target/${{ matrix.target }}/release          
           tar czvf ../../../clash2sing-box-${{ matrix.target }}.tar.gz ctos*
           cd -
-
-
-
-      - uses: marvinpinto/action-automatic-releases@latest
+      - name: Publish
+        uses: softprops/action-gh-release@v1
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
-          prerelease: true
-          files: |
-            clash2sing-box*
+            files: 'clash2sing-box*'
+            prerelease: true
+            tag_name: 'latest'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
