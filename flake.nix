@@ -5,80 +5,56 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     flake-utils.url = "github:numtide/flake-utils";
-    naersk = {
-      url = "github:nix-community/naersk";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     nixpkgs.url = "nixpkgs/nixos-unstable";
   };
 
-  outputs = { self, fenix, flake-utils, naersk, nixpkgs }:
-    let b = { target, system, ... }: {
+  outputs = { self, fenix, flake-utils, nixpkgs }:
 
-      pkg =
-        let
-          inherit system target;
-          pkgs = nixpkgs.legacyPackages.${system};
-          toolchain = with fenix.packages.${system}; combine [
-            minimal.cargo
-            minimal.rustc
-            targets.${target}.latest.rust-std
-          ];
-        in
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = import nixpkgs { inherit system; };
+      in
+      rec {
+        packages.default =
+          let
+            toolchain = with fenix.packages.${system}; combine [
+              minimal.cargo
+              minimal.rustc
+              targets.x86_64-unknown-linux-gnu.latest.rust-std
+              targets.aarch64-unknown-linux-gnu.latest.rust-std
+              targets.aarch64-apple-darwin.latest.rust-std
+              targets.x86_64-apple-darwin.latest.rust-std
+            ];
+          in
+          (pkgs.makeRustPlatform
+            {
+              cargo = toolchain;
+              rustc = toolchain;
+            }
+          ).buildRustPackage
+            {
+              name = "clash2sing-box";
 
-        with (naersk.lib.${system}.override {
-          cargo = toolchain;
-          rustc = toolchain;
-        }); buildPackage {
-          src = ./.;
-          CARGO_BUILD_TARGET = target;
-          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER =
-            "${pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc}/bin/${target}-gcc";
-          #          RUSTFLAGS = [ "-C" "link-arg=-fuse-ld=${pkgs.mold}/bin/mold"];
+              src = self;
 
-          nativeBuildInputs = with pkgs;[ pkg-config ];
+              cargoLock = {
+                lockFile = ./Cargo.lock;
+              };
 
-          buildInputs = [
-            (
-              if target == "aarch64-unknown-linux-gnu"
-              then nixpkgs.legacyPackages."aarch64-linux".openssl
-              else nixpkgs.legacyPackages."x86_64-linux".openssl
-            )
-          ];
+              nativeBuildInputs = with pkgs;[ pkg-config ];
 
-          postInstall = ''
-            mv $out/bin/ctos $out/bin/ctos-${target}
-          '';
+              buildInputs = with pkgs; lib.optionals stdenv.isLinux [ openssl ]
+                ++ lib.optionals stdenv.isDarwin [ Security CoreServices ];
+
+              postInstall = ''
+                mv $out/bin/ctos $out/bin/ctos-${system}
+              '';
+            };
+        devShells.default = pkgs.mkShell {
+          inputsFrom = [ packages.default ];
+          nativeBuildInputs = with pkgs;[ cargo-zigbuild ];
         };
-    }; in
-
-    flake-utils.lib.eachDefaultSystem (system: {
-      packages.default =
-        let
-          inherit system;target = "x86_64-unknown-linux-gnu";
-        in
-        (b { inherit target system; }).pkg;
-      packages.aarch64-linux =
-        let
-          inherit system;target = "aarch64-unknown-linux-gnu";
-        in
-        (b { inherit target system; }).pkg;
-
-      devShells.default = with nixpkgs.legacyPackages.${system}; mkShell {
-        nativeBuildInputs = [
-          (fenix.packages.${system}.complete.withComponents [
-            "cargo"
-            "clippy"
-            "rust-src"
-            "rustc"
-            "rustfmt"
-          ])
-          cargo-zigbuild
-          openssl.dev
-          pkg-config
-        ];
-      };
-    });
+      });
 
 
 }
