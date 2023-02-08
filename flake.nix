@@ -16,22 +16,9 @@
       in
       rec {
         packages.default =
-          let
-            toolchain = with fenix.packages.${system}; combine [
-              minimal.cargo
-              minimal.rustc
-              targets.x86_64-unknown-linux-gnu.latest.rust-std
-              targets.aarch64-unknown-linux-gnu.latest.rust-std
-              targets.aarch64-apple-darwin.latest.rust-std
-              targets.x86_64-apple-darwin.latest.rust-std
-            ];
-          in
-          (pkgs.makeRustPlatform
-            {
-              cargo = toolchain;
-              rustc = toolchain;
-            }
-          ).buildRustPackage
+          (pkgs.makeRustPlatform {
+            inherit (fenix.packages.${system}.minimal) cargo rustc;
+          }).buildRustPackage
             {
               name = "clash2sing-box";
 
