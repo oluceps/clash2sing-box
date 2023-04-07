@@ -369,7 +369,7 @@ pub fn read_yaml(yaml_path: PathBuf) -> yaml_rust::Yaml {
 
 pub fn plugin_opts_to_string(opts: Yaml) -> String {
     format!(
-        "mode={};host={}",
+        "obfs={};obfs-host={}",
         opts["mode"].to_owned().into_string().unwrap(),
         opts["host"].to_owned().into_string().unwrap()
     )
