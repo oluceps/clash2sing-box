@@ -232,10 +232,9 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
                 version: 5,
                 username: optional("username"),
                 password: optional("username"),
-                network: if !per_node["udp"].is_null() {
-                    Some("udp".to_string())
-                } else {
-                    None
+                network: match per_node["udp"].as_bool() {
+                    Some(true) => None,
+                    _ => Some("tcp".to_string()),
                 },
                 udp_over_tcp: false,
             },
@@ -315,10 +314,9 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
                 server: param_str("server"),
                 server_port: param_int("port"),
                 uuid: param_str("uuid"),
-                network: if !per_node["udp"].is_null() {
-                    None
-                } else {
-                    Some("tcp".to_string())
+                network: match per_node["udp"].as_bool() {
+                    Some(true) => None,
+                    _ => Some("tcp".to_string()),
                 },
                 tls: parse_tls(),
                 packet_encoding: None,
