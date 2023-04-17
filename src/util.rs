@@ -193,8 +193,8 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
                     .to_owned()
                     .into_string()
                     .map(|_| plugin_opts_to_string(per_node["plugin-opts"].to_owned())),
-                network: match per_node["udp"].to_owned().into_string() {
-                    Some(_) => None,
+                network: match per_node["udp"].as_bool() {
+                    Some(true) => None,
                     _ => Some("tcp".to_string()),
                 },
                 udp_over_tcp: false,
@@ -218,8 +218,8 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
                 obfs_param: Some(param_str("obfs-param")),
                 protocol: Some(param_str("protocol")),
                 protocol_param: Some(param_str("protocol-param")),
-                network: match per_node["udp"].to_owned().into_string() {
-                    Some(_) => None,
+                network: match per_node["udp"].as_bool() {
+                    Some(true) => None,
                     _ => Some("tcp".to_string()),
                 },
             },
@@ -256,10 +256,9 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
                 server: param_str("server"),
                 server_port: param_int("port"),
                 password: param_str("password"),
-                network: if !per_node["udp"].is_null() {
-                    None
-                } else {
-                    Some("tcp".to_string())
+                network: match per_node["udp"].as_bool() {
+                    Some(true) => None,
+                    _ => Some("tcp".to_string()),
                 },
                 tls: parse_tls(),
             },
@@ -302,10 +301,9 @@ pub fn convert_to_node_vec(yaml_data: &Yaml) -> Result<NodeData, Box<dyn Error>>
                 },
                 global_padding: None,
                 authenticated_length: None,
-                network: if !per_node["udp"].is_null() {
-                    None
-                } else {
-                    Some("tcp".to_string())
+                network: match per_node["udp"].as_bool() {
+                    Some(true) => None,
+                    _ => Some("tcp".to_string()),
                 },
                 tls: parse_tls(),
                 transport: parse_transport(),
