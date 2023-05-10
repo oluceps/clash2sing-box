@@ -49,6 +49,15 @@ Options:
   -V, --version            Print version information
 ```
 
+## Nix flake support
+
+Try run application directly on machine with nix installed:
+
+```bash
+nix run github:olucep/clash2sing-box -- -s "<subscribe link>"
+# or any other actions
+```
+
 
 ## TODO
 
