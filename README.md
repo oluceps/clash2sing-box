@@ -52,7 +52,7 @@ Options:
 
 ## TODO
 
-- [ ] Refactor, with more elegant converting
+- [ ] [WIP] Refactor, with more elegant converting
 
 - [ ] Clash rule converting
 
@@ -61,6 +61,8 @@ Options:
 - [ ] Simple and easy-to-use web pannel  
 
 - [ ] Auto update with systemd service, with NixOS module
+
+- [ ] Convert to [dae](https://github.com/daeuniverse/dae) config
 
 ### Credits
 + [Clash](https://github.com/Dreamacro/clash)  

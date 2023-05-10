@@ -34,73 +34,67 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    let yaml_path: Option<PathBuf> = match args.subscribe {
-        Some(_) => None,
-        None => match args.path {
-            Some(i) => Some(PathBuf::from(i)),
-            None => Some(PathBuf::from("./config.yaml".to_string())),
-        },
+    let yaml_path: Option<PathBuf> = if args.subscribe.is_some() {
+        None
+    } else {
+        args.path
+            .map_or(Some(PathBuf::from("./config.yaml".to_string())), |i| {
+                Some(PathBuf::from(i))
+            })
     };
 
-    let node_vec = (match yaml_path {
-        Some(i) => read_yaml(i),
-        None => {
+    let node_vec = yaml_path
+        .map_or(
             YamlLoader::load_from_str(get_subscribe(&args.subscribe.unwrap()).unwrap().as_str())
                 .unwrap()[0]
-                .to_owned()
-        }
-    })
-    .convert();
+                .to_owned(),
+            |i| read_yaml(i),
+        )
+        .convert();
 
-    let valued_nodes_json = to_value(match node_vec {
-        Ok(ref i) => i.node_list.clone(),
-        Err(e) => panic!("{}", e),
-    })
-    .unwrap();
+    let valued_nodes_json =
+        to_value(node_vec.as_ref().map(|i| i.node_list.clone()).unwrap()).unwrap();
 
-    let valued_names_json = to_value(match node_vec {
-        Ok(ref i) => i.tag_list.clone(),
-        Err(e) => panic!("{}", e),
-    });
+    let valued_names_json = to_value(node_vec.as_ref().map(|i| i.tag_list.clone()).unwrap());
 
     if let Ok(ref i) = valued_names_json {
         println!("Node name list:\n\n{}\n", i);
     };
 
-    match args.gen_profile {
-        true => {
-            let mut paradigm_deserialized: Value = from_str(PARADIGM).unwrap();
-            paradigm_deserialized["outbounds"].merge(valued_nodes_json);
-            paradigm_deserialized["outbounds"][1]["outbounds"].merge(valued_names_json.unwrap());
-
-            let j = match args.format {
-                true => to_string_pretty(&paradigm_deserialized).unwrap(),
-                false => to_string(&paradigm_deserialized).unwrap(),
-            };
-
-            if let Some(i) = args.output {
-                write(&i, j.as_bytes()).unwrap();
-                println!(
-                    "\nMinimal avaliable sing-box config had been successful written into {}",
-                    i
-                )
+    macro_rules! gen_json {
+        ($v: ident) => {
+            if args.format {
+                to_string_pretty(&$v).unwrap()
             } else {
-                println!("\nMinimal configuration:");
-                println!("\n{}", j);
+                to_string(&$v).unwrap()
             }
+        };
+    }
+
+    if args.gen_profile {
+        let mut paradigm_deserialized: Value = from_str(PARADIGM).unwrap();
+        paradigm_deserialized["outbounds"].merge(valued_nodes_json);
+        paradigm_deserialized["outbounds"][1]["outbounds"].merge(valued_names_json.unwrap());
+
+        let j = gen_json!(paradigm_deserialized);
+        if let Some(i) = args.output {
+            write(&i, j.as_bytes()).unwrap();
+            println!(
+                "\nMinimal avaliable sing-box config had been successful written into {}",
+                i
+            )
+        } else {
+            println!("\nMinimal configuration:");
+            println!("\n{}", j);
         }
-        false => {
-            let j = match args.format {
-                true => to_string_pretty(&valued_nodes_json).unwrap(),
-                false => to_string(&valued_nodes_json).unwrap(),
-            };
+    } else {
+        let j = gen_json!(valued_nodes_json);
 
-            println!("sing-box client outbound:\n\n\n{}", j);
+        println!("sing-box client outbound:\n\n\n{}", j);
 
-            if let Some(i) = args.output {
-                write(&i, j.as_bytes()).unwrap();
-                println!("\n\n\nSuccessful written into {}", i)
-            }
+        if let Some(i) = args.output {
+            write(&i, j.as_bytes()).unwrap();
+            println!("\n\n\nSuccessful written into {}", i)
         }
     }
 }
