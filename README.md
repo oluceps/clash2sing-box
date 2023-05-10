@@ -49,6 +49,19 @@ Options:
   -V, --version            Print version information
 ```
 
+
+## TODO
+
+- [ ] Refactor, with more elegant converting
+
+- [ ] Clash rule converting
+
+- [ ] Subcommand `update`, to extend new content into config  
+
+- [ ] Simple and easy-to-use web pannel  
+
+- [ ] Auto update with systemd service, with NixOS module
+
 ### Credits
 + [Clash](https://github.com/Dreamacro/clash)  
 + [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta)  
