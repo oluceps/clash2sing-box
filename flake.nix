@@ -50,23 +50,6 @@
             program = "${self.packages.${system}.default}/bin/ctos-${system}";
           };
         })
-    # // {
-    #   apps = nixpkgs.lib.listToAttrs ((map (n: {
-    #     name = "${n}.default";
-    #     value =
-    #       {
-    #         type = "app";
-    #         program = "${self.packages.${n}.default}/bin/ctos-${n}";
-    #       };
-    #   })) [ "aarch64-linux" "x86_64-linux" ]);
-    # }
   ;
-  # {
-  #   apps.x86_64-linux.default = {
-  #     type = "app";
-  #     program = "${self.packages.x86_64-linux.default}/bin/ctos-x86_64-linux";
-  #   };
-  # };
-
 
 }
