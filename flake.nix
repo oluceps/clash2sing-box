@@ -28,13 +28,22 @@
                 lockFile = ./Cargo.lock;
               };
 
+              mainProgram = "ctos-${system}";
+
+              nativeBuildInputs = with pkgs; [ pkg-config ];
+              buildInputs = with pkgs; [ openssl ];
+
               postInstall = ''
                 mv $out/bin/ctos $out/bin/ctos-${system}
               '';
             };
         devShells.default = pkgs.mkShell {
           inputsFrom = [ packages.default ];
-          nativeBuildInputs = with pkgs;[ cargo-zigbuild rustup ];
+        };
+
+        apps.x86_64-linux.default = {
+          type = "app";
+          program = "${self.packages.x86_64-linux.default}/bin/ctos-${system}";
         };
       });
 
