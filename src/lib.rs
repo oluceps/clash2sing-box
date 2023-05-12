@@ -42,7 +42,7 @@ impl ClashCfg {
         .map(|i| i.into())
     }
 
-    pub fn new_from_plain_text(t: impl AsRef<String>) -> Result<Self> {
+    pub fn new_from_plain_text(t: &str) -> Result<Self> {
         Ok(YamlLoader::load_from_str(t.as_ref())?.remove(0).into())
     }
 
@@ -551,14 +551,19 @@ mod tests {
         ); //
     }
 
-    // #[test]
-    // fn vmess_without_network_opt() {
-    //     static YAML_TESTCASE_STR: &str = r#"proxies:
-    // - {"server":"server","port": 2,"uuid":"uuid","udp":true,"name":"name","type":"vmess","alterId":0}
-    //       "#;
+    #[test]
+    fn vmess_without_network_opt() {
+        static YAML_TESTCASE_STR: &str = r#"proxies:
+    - {"server":"server","port": 2,"uuid":"uuid","udp":true,"name":"name","type":"vmess","alterId":0}
+          "#;
 
-    //     let vmess_data = ClashCfg::new_from_plain_text(YAML_TESTCASE_STR);
+        let vmess_data = ClashCfg::new_from_plain_text(YAML_TESTCASE_STR);
 
-    //     // assert!(vmess_data.convert().is_ok());
-    // }
+        assert!(vmess_data
+            .unwrap()
+            .get_node_data_full()
+            .unwrap()
+            .proxies_string_pretty()
+            .is_ok())
+    }
 }
