@@ -22,157 +22,157 @@ macro_rules! as_item {
 
 #[derive(Debug, Serialize)]
 pub struct Socks {
-    r#type: String,
-    tag: String,
-    server: String,
-    server_port: u16,
-    version: u16,
+    pub r#type: String,
+    pub tag: String,
+    pub server: String,
+    pub server_port: u16,
+    pub version: u16,
     #[serde(skip_serializing_if = "Option::is_none")]
-    username: Option<String>,
+    pub username: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    password: Option<String>,
+    pub password: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    network: Option<String>,
-    udp_over_tcp: bool,
+    pub network: Option<String>,
+    pub udp_over_tcp: bool,
 }
 
 #[derive(Debug, Serialize)]
 pub struct Http {
-    r#type: String,
-    tag: String,
-    server: String,
-    server_port: u16,
+    pub r#type: String,
+    pub tag: String,
+    pub server: String,
+    pub server_port: u16,
     #[serde(skip_serializing_if = "Option::is_none")]
-    username: Option<String>,
+    pub username: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    password: Option<String>,
+    pub password: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    tls: Option<Tls>,
+    pub tls: Option<Tls>,
 }
 
 #[derive(Debug, Serialize)]
 pub struct Shadowsocks {
-    r#type: String,
-    tag: String,
-    server: String,
-    server_port: u16,
-    method: String,
-    password: String,
+    pub r#type: String,
+    pub tag: String,
+    pub server: String,
+    pub server_port: u16,
+    pub method: String,
+    pub password: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    plugin: Option<String>,
+    pub plugin: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    plugin_opts: Option<String>,
+    pub plugin_opts: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    network: Option<String>,
-    udp_over_tcp: bool,
+    pub network: Option<String>,
+    pub udp_over_tcp: bool,
     //      multiplex: Option<Multiplex>,
 }
 
 #[derive(Debug, Serialize)]
 pub struct Shadowsocksr {
-    r#type: String,
-    tag: String,
-    server: String,
-    server_port: u16,
-    method: String,
-    password: String,
+    pub r#type: String,
+    pub tag: String,
+    pub server: String,
+    pub server_port: u16,
+    pub method: String,
+    pub password: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    obfs: Option<String>,
+    pub obfs: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    obfs_param: Option<String>,
+    pub obfs_param: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    protocol: Option<String>,
+    pub protocol: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    protocol_param: Option<String>,
+    pub protocol_param: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    network: Option<String>,
+    pub network: Option<String>,
 }
 #[derive(Debug, Serialize)]
 pub struct Trojan {
-    r#type: String,
-    tag: String,
-    server: String,
-    server_port: u16,
-    password: String,
+    pub r#type: String,
+    pub tag: String,
+    pub server: String,
+    pub server_port: u16,
+    pub password: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    network: Option<String>,
+    pub network: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    tls: Option<Tls>,
+    pub tls: Option<Tls>,
 }
 
 #[derive(Debug, Serialize)]
 pub struct Hysteria {
-    r#type: String,
-    tag: String,
-    server: String,
-    server_port: u16,
+    pub r#type: String,
+    pub tag: String,
+    pub server: String,
+    pub server_port: u16,
     #[serde(skip_serializing_if = "Option::is_none")]
-    up: Option<String>,
+    pub up: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    up_mbps: Option<u32>,
+    pub up_mbps: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    down: Option<String>,
+    pub down: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    down_mbps: Option<u32>,
+    pub down_mbps: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    obfs: Option<String>,
+    pub obfs: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    auth: Option<String>,
+    pub auth: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    auth_str: Option<String>,
+    pub auth_str: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    recv_window_conn: Option<u32>,
+    pub recv_window_conn: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    recv_window: Option<u32>,
+    pub recv_window: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    disable_mtu_discovery: Option<bool>,
+    pub disable_mtu_discovery: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    tls: Option<Tls>,
+    pub tls: Option<Tls>,
 }
 
 #[derive(Debug, Serialize)]
 pub struct VMess {
-    r#type: String,
-    tag: String,
-    server: String,
-    server_port: u16,
-    uuid: String,
+    pub r#type: String,
+    pub tag: String,
+    pub server: String,
+    pub server_port: u16,
+    pub uuid: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    security: Option<String>,
+    pub security: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    alter_id: Option<u16>,
+    pub alter_id: Option<u16>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    global_padding: Option<bool>,
+    pub global_padding: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    authenticated_length: Option<bool>,
+    pub authenticated_length: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    network: Option<String>,
+    pub network: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    tls: Option<Tls>,
+    pub tls: Option<Tls>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    transport: Option<Transport>,
+    pub transport: Option<Transport>,
 }
 #[derive(Debug, Serialize)]
 pub struct Vless {
-    r#type: String,
-    tag: String,
-    server: String,
-    server_port: u16,
-    uuid: String,
+    pub r#type: String,
+    pub tag: String,
+    pub server: String,
+    pub server_port: u16,
+    pub uuid: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    network: Option<String>,
+    pub network: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    tls: Option<Tls>,
+    pub tls: Option<Tls>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    packet_encoding: Option<String>,
+    pub packet_encoding: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    transport: Option<Transport>,
+    pub transport: Option<Transport>,
 }
 
 #[derive(Debug, Serialize)]
 pub struct Tuic {
-    r#type: String,
-    tag: String,
+    pub r#type: String,
+    pub tag: String,
 }
 
 #[allow(unused)]
