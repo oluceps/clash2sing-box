@@ -2,7 +2,7 @@ pub mod paradigm;
 pub mod sb_def;
 
 use anyhow::{anyhow, Result};
-// use paradigm::PARADIGM;
+use paradigm::PARADIGM;
 use reqwest::header::USER_AGENT;
 use sb_def::{
     Http, Hysteria, Shadowsocks, Shadowsocksr, SingboxNodeDef, Socks, Tls, Transport, Trojan, Utls,
@@ -128,7 +128,7 @@ impl ClashCfg {
             .clone()
             .into_iter()
             .map(|i| {
-                serde_json::to_value(PerClashProxy::from(i).convert_to_singbox_def())
+                serde_json::to_value(PerClashProxy::from(i).convert_to_singbox_def().unwrap())
                     .unwrap()
                     .as_object()
                     .unwrap()
@@ -301,151 +301,170 @@ impl PerClashProxy {
             opts["host"].to_owned().into_string().unwrap()
         )
     }
-    fn convert_to_singbox_def(&self) -> SingboxNodeDef {
+    fn convert_to_singbox_def(&self) -> Option<SingboxNodeDef> {
         let proxy_type = self.typed();
 
-        match proxy_type.as_str() {
-            "ss" => SingboxNodeDef::Shadowsocks(Shadowsocks {
-                r#type: "shadowsocks".to_string(),
-                tag: self.named(),
-                server: self.str_param("server"),
-                server_port: self.int_param("port"),
-                method: self.str_param("cipher"),
-                password: self.str_param("password"),
-                plugin: self.optional_plugin("plugin"),
-                plugin_opts: self.0["plugin"]
-                    .to_owned()
-                    .into_string()
-                    .map(|_| Self::plugin_opts_to_string(self.0["plugin-opts"].to_owned())),
-                network: match self.0["udp"].as_bool() {
-                    Some(true) => None,
-                    _ => Some("tcp".to_string()),
-                },
-                udp_over_tcp: false,
-            }),
-            "ssr" => SingboxNodeDef::Shadowsocksr(Shadowsocksr {
-                r#type: "shadowsocksr".to_string(),
-                tag: self.named(),
-                server: self.str_param("server"),
-                server_port: self.int_param("port"),
-                method: self.str_param("cipher"),
-                password: self.str_param("password"),
-                obfs: Some(self.str_param("obfs")),
-                obfs_param: Some(self.str_param("obfs-param")),
-                protocol: Some(self.str_param("protocol")),
-                protocol_param: Some(self.str_param("protocol-param")),
-                network: match self.0["udp"].as_bool() {
-                    Some(true) => None,
-                    _ => Some("tcp".to_string()),
-                },
-            }),
+        let type_fixed = match proxy_type.as_str() {
+            "ss" => "Shadowsocks",
+            "trojan" => "Trojan",
+            "socks5" => "Socks",
+            "hysteria" => "Hysteria",
+            "vmess" => "VMess",
+            "ssr" => "Shadowsocksr",
+            "vless" => "Vless",
+            "tuic" => "",
+            _ => "",
+        };
 
-            "socks5" => SingboxNodeDef::Socks(Socks {
-                r#type: "socks".to_string(),
-                tag: self.named(),
-                server: self.str_param("server"),
-                server_port: self.int_param("port"),
-                version: 5,
-                username: self.optional_plugin("username"),
-                password: self.optional_plugin("username"),
-                network: match self.0["udp"].as_bool() {
-                    Some(true) => None,
-                    _ => Some("tcp".to_string()),
-                },
-                udp_over_tcp: false,
-            }),
-
-            "http" => SingboxNodeDef::Http(Http {
-                r#type: "http".to_string(),
-                tag: self.named(),
-                server: self.str_param("server"),
-                server_port: self.int_param("port"),
-                username: self.optional_plugin("username"),
-                password: self.optional_plugin("password"),
-                tls: self.parse_tls(),
-            }),
-            "trojan" => SingboxNodeDef::Trojan(Trojan {
-                r#type: "trojan".to_string(),
-                tag: self.named(),
-                server: self.str_param("server"),
-                server_port: self.int_param("port"),
-                password: self.str_param("password"),
-                network: match self.0["udp"].as_bool() {
-                    Some(true) => None,
-                    _ => Some("tcp".to_string()),
-                },
-                tls: self.parse_tls(),
-            }),
-
-            "hysteria" => SingboxNodeDef::Hysteria(Hysteria {
-                r#type: "hysteria".to_string(),
-                tag: self.named(),
-                server: self.str_param("server"),
-                server_port: self.int_param("port"),
-                up: self.0["up"].to_owned().into_string(),
-                up_mbps: None,
-                down: self.0["down"].to_owned().into_string(),
-                down_mbps: None,
-                obfs: self.0["obfs"].to_owned().into_string(),
-                auth: None,
-                auth_str: self.0["auth_str"].to_owned().into_string(),
-                recv_window_conn: if self.0["recv_window_conn"].is_badvalue() {
-                    None
-                } else {
-                    Some(self.int_param("recv_window_conn").into())
-                },
-                recv_window: if self.0["recv_window"].is_badvalue() {
-                    None
-                } else {
-                    Some(self.int_param("recv_window").into())
-                },
-                disable_mtu_discovery: if self.0["sni"].to_owned().into_string()
-                    == Some("true".to_string())
-                {
-                    Some(true)
-                } else {
-                    None
-                },
-                tls: self.parse_tls(),
-            }),
-            "vmess" => SingboxNodeDef::VMess(VMess {
-                r#type: "vmess".to_string(),
-                tag: self.named(),
-                server: self.str_param("server"),
-                server_port: self.int_param("port"),
-                uuid: self.str_param("uuid"),
-                security: Some("auto".to_string()),
-                alter_id: if self.0["alertId"].to_owned().into_string().is_some() {
-                    Some(self.int_param("alertId"))
-                } else {
-                    Some(0)
-                },
-                global_padding: None,
-                authenticated_length: None,
-                network: match self.0["udp"].as_bool() {
-                    Some(true) => None,
-                    _ => Some("tcp".to_string()),
-                },
-                tls: self.parse_tls(),
-                transport: self.parse_transport(),
-            }),
-
-            "vless" => SingboxNodeDef::Vless(Vless {
-                r#type: "vless".to_string(),
-                tag: self.named(),
-                server: self.str_param("server"),
-                server_port: self.int_param("port"),
-                uuid: self.str_param("uuid"),
-                network: match self.0["udp"].as_bool() {
-                    Some(true) => None,
-                    _ => Some("tcp".to_string()),
-                },
-                tls: self.parse_tls(),
-                packet_encoding: None,
-                transport: self.parse_transport(),
-            }),
-            &_ => todo!(),
+        macro_rules! create {
+            ($n:ident { $($f:ident: $e:expr),* $(,)? }) => {
+                if type_fixed == stringify!($n) {
+                    return Some(SingboxNodeDef::$n($n{$($f: $e),*}))
+                }
+            };
         }
+
+        create!(Shadowsocks {
+            r#type: "shadowsocks".to_string(),
+            tag: self.named(),
+            server: self.str_param("server"),
+            server_port: self.int_param("port"),
+            method: self.str_param("cipher"),
+            password: self.str_param("password"),
+            plugin: self.optional_plugin("plugin"),
+            plugin_opts: self.0["plugin"]
+                .to_owned()
+                .into_string()
+                .map(|_| Self::plugin_opts_to_string(self.0["plugin-opts"].to_owned())),
+            network: match self.0["udp"].as_bool() {
+                Some(true) => None,
+                _ => Some("tcp".to_string()),
+            },
+            udp_over_tcp: false,
+        });
+
+        create!(Shadowsocksr {
+            r#type: "shadowsocksr".to_string(),
+            tag: self.named(),
+            server: self.str_param("server"),
+            server_port: self.int_param("port"),
+            method: self.str_param("cipher"),
+            password: self.str_param("password"),
+            obfs: Some(self.str_param("obfs")),
+            obfs_param: Some(self.str_param("obfs-param")),
+            protocol: Some(self.str_param("protocol")),
+            protocol_param: Some(self.str_param("protocol-param")),
+            network: match self.0["udp"].as_bool() {
+                Some(true) => None,
+                _ => Some("tcp".to_string()),
+            },
+        });
+
+        create!(Socks {
+            r#type: "socks".to_string(),
+            tag: self.named(),
+            server: self.str_param("server"),
+            server_port: self.int_param("port"),
+            version: 5,
+            username: self.optional_plugin("username"),
+            password: self.optional_plugin("username"),
+            network: match self.0["udp"].as_bool() {
+                Some(true) => None,
+                _ => Some("tcp".to_string()),
+            },
+            udp_over_tcp: false,
+        });
+
+        create!(Http {
+            r#type: "http".to_string(),
+            tag: self.named(),
+            server: self.str_param("server"),
+            server_port: self.int_param("port"),
+            username: self.optional_plugin("username"),
+            password: self.optional_plugin("password"),
+            tls: self.parse_tls(),
+        });
+        create!(Trojan {
+            r#type: "trojan".to_string(),
+            tag: self.named(),
+            server: self.str_param("server"),
+            server_port: self.int_param("port"),
+            password: self.str_param("password"),
+            network: match self.0["udp"].as_bool() {
+                Some(true) => None,
+                _ => Some("tcp".to_string()),
+            },
+            tls: self.parse_tls(),
+        });
+
+        create!(Hysteria {
+            r#type: "hysteria".to_string(),
+            tag: self.named(),
+            server: self.str_param("server"),
+            server_port: self.int_param("port"),
+            up: self.0["up"].to_owned().into_string(),
+            up_mbps: None,
+            down: self.0["down"].to_owned().into_string(),
+            down_mbps: None,
+            obfs: self.0["obfs"].to_owned().into_string(),
+            auth: None,
+            auth_str: self.0["auth_str"].to_owned().into_string(),
+            recv_window_conn: if self.0["recv_window_conn"].is_badvalue() {
+                None
+            } else {
+                Some(self.int_param("recv_window_conn").into())
+            },
+            recv_window: if self.0["recv_window"].is_badvalue() {
+                None
+            } else {
+                Some(self.int_param("recv_window").into())
+            },
+            disable_mtu_discovery: if self.0["sni"].to_owned().into_string()
+                == Some("true".to_string())
+            {
+                Some(true)
+            } else {
+                None
+            },
+            tls: self.parse_tls(),
+        });
+        create!(VMess {
+            r#type: "vmess".to_string(),
+            tag: self.named(),
+            server: self.str_param("server"),
+            server_port: self.int_param("port"),
+            uuid: self.str_param("uuid"),
+            security: Some("auto".to_string()),
+            alter_id: if self.0["alertId"].to_owned().into_string().is_some() {
+                Some(self.int_param("alertId"))
+            } else {
+                Some(0)
+            },
+            global_padding: None,
+            authenticated_length: None,
+            network: match self.0["udp"].as_bool() {
+                Some(true) => None,
+                _ => Some("tcp".to_string()),
+            },
+            tls: self.parse_tls(),
+            transport: self.parse_transport(),
+        });
+
+        create!(Vless {
+            r#type: "vless".to_string(),
+            tag: self.named(),
+            server: self.str_param("server"),
+            server_port: self.int_param("port"),
+            uuid: self.str_param("uuid"),
+            network: match self.0["udp"].as_bool() {
+                Some(true) => None,
+                _ => Some("tcp".to_string()),
+            },
+            tls: self.parse_tls(),
+            packet_encoding: None,
+            transport: self.parse_transport(),
+        });
+        None
     }
 }
 
@@ -468,6 +487,17 @@ impl NodeInfo {
 
     fn proxies_string_pretty(&self) -> Result<String> {
         serde_json::to_string_pretty(&self.sum_proxies()).map_err(|e| anyhow!(e))
+    }
+
+    fn merge_to(&self, outer: &mut serde_json::Value) {
+        outer["outbounds"].merge(self.sum_proxies());
+        outer["outbounds"][1]["outbounds"].merge(self.sum_tags());
+    }
+
+    fn merge_min(&self) -> serde_json::Value {
+        let mut parad: serde_json::Value = serde_json::from_str(PARADIGM).unwrap();
+        self.merge_to(&mut parad);
+        parad
     }
 }
 
@@ -511,16 +541,15 @@ impl Default for NodeInfo {
 mod tests {
     use crate::ClashCfg;
 
-    // #[test]
-    // fn get_from_link() {
-    //     // with public subscription
-    //     let cfg = ClashCfg::new_from_subscribe_link(
-    //         "https://raw.githubusercontent.com/aiboboxx/clashfree/main/clash.yml",
-    //     )
-    //     .unwrap();
+    #[test]
+    fn get_from_link() {
+        // with public subscription
+        let cfg = ClashCfg::new_from_subscribe_link(
+            "https://raw.githubusercontent.com/aiboboxx/clashfree/main/clash.yml",
+        );
 
-    //     dbg!(cfg);
-    // }
+        assert!(cfg.is_ok());
+    }
 
     #[test]
     fn get_metainfo() {
@@ -532,6 +561,7 @@ mod tests {
 
         dbg!(cfg.get_node_tags());
         dbg!(cfg.get_node_types());
+        // assert!(cfg.get_node_tags())
     }
 
     #[test]
@@ -565,5 +595,23 @@ mod tests {
             .unwrap()
             .proxies_string_pretty()
             .is_ok())
+    }
+
+    #[test]
+    fn merge_config() {
+        // with public subscription
+        let cfg = ClashCfg::new_from_subscribe_link(
+            "https://raw.githubusercontent.com/aiboboxx/clashfree/main/clash.yml",
+        )
+        .unwrap();
+
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&cfg.get_node_data_full().unwrap().merge_min()).unwrap()
+        );
+
+        assert!(
+            serde_json::to_string_pretty(&cfg.get_node_data_full().unwrap().merge_min()).is_ok()
+        )
     }
 }
