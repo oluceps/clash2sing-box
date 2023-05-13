@@ -1,8 +1,14 @@
 name: build
-on: 
+
+on:
   push:
-    branches: 
-      - main
+    branches:
+      - '*'
+
+  pull_request:
+    branches:
+      - "*"
+
 jobs:
   style:
     name: Check Style
@@ -84,12 +90,14 @@ jobs:
           args: --release --target ${{ matrix.target }}
 
       - name: Package
+        if:   github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         run: |
           cd target/${{ matrix.target }}/release          
           tar czvf ../../../clash2sing-box-${{ matrix.target }}.tar.gz ctos*
           cd -
       - name: Publish
+        if:   github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v1
         with:
             files: 'clash2sing-box*'

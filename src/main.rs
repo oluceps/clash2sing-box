@@ -1,106 +1,98 @@
-mod node;
-mod paradigm;
-mod util;
-use clap::Parser;
-use paradigm::PARADIGM;
-use serde_json::{from_str, to_string, to_string_pretty, to_value};
-use std::{fs::write, path::PathBuf};
-use util::*;
-use yaml_rust::YamlLoader;
+use anyhow::{anyhow, Result};
+use clap::{Parser, Subcommand};
+use ctos::ClashCfg;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    /// Read path of clash format config.yaml file
-    #[arg(short, long)]
-    path: Option<String>,
+    #[clap(subcommand)]
+    cmd: Command,
 
-    /// Get clash subscription profile by url
-    #[arg(short, long, value_name = "URL")]
-    subscribe: Option<String>,
+    #[clap(short, long, help = "clash config file path(url)")]
+    source: Option<String>,
 
-    /// Output pretty-printed indented JSON
-    #[arg(short = 'f')]
-    format: bool,
-
-    /// Generate minimal avaliable sing-box JSON profile
-    #[arg(short, long = "gen-profile")]
-    gen_profile: bool,
-
-    /// Output sing-box JSON profile
-    #[arg(short, long, value_name = "PATH")]
-    output: Option<String>,
+    #[clap(short, long, help = "clash subscription url")]
+    url: Option<String>,
 }
-fn main() {
-    let args = Args::parse();
 
-    let yaml_path: Option<PathBuf> = match args.subscribe {
-        Some(_) => None,
-        None => match args.path {
-            Some(i) => Some(PathBuf::from(i)),
-            None => Some(PathBuf::from("./config.yaml".to_string())),
-        },
-    };
+#[derive(Subcommand, Debug)]
+enum Command {
+    #[clap(about = "Show sing-box proxies info from clash profile")]
+    Show {
+        #[clap(
+            long,
+            short = 't',
+            default_value = "false",
+            help = "if show proxy name of all"
+        )]
+        tags: bool,
+    },
+    #[clap(about = "Generate sing-box profile from clash format")]
+    Gen {
+        #[clap(long, help = "location of paradigm sing-box profile")]
+        paradigm: Option<String>,
+    },
+    #[clap(about = "Append new clash proxies to existed sing-box profile")]
+    Append {
+        #[clap(long, help = "location of sing-box profile to be append")]
+        dst: String,
+    },
+}
 
-    let node_vec = (match yaml_path {
-        Some(i) => read_yaml(i),
-        None => {
-            YamlLoader::load_from_str(get_subscribe(&args.subscribe.unwrap()).unwrap().as_str())
-                .unwrap()[0]
-                .to_owned()
-        }
-    })
-    .convert();
-
-    let valued_nodes_json = to_value(match node_vec {
-        Ok(ref i) => i.node_list.clone(),
-        Err(e) => panic!("{}", e),
-    })
-    .unwrap();
-
-    let valued_names_json = to_value(match node_vec {
-        Ok(ref i) => i.tag_list.clone(),
-        Err(e) => panic!("{}", e),
-    });
-
-    if let Ok(ref i) = valued_names_json {
-        println!("Node name list:\n\n{}\n", i);
-    };
-
-    match args.gen_profile {
-        true => {
-            let mut paradigm_deserialized: Value = from_str(PARADIGM).unwrap();
-            paradigm_deserialized["outbounds"].merge(valued_nodes_json);
-            paradigm_deserialized["outbounds"][1]["outbounds"].merge(valued_names_json.unwrap());
-
-            let j = match args.format {
-                true => to_string_pretty(&paradigm_deserialized).unwrap(),
-                false => to_string(&paradigm_deserialized).unwrap(),
-            };
-
-            if let Some(i) = args.output {
-                write(&i, j.as_bytes()).unwrap();
-                println!(
-                    "\nMinimal avaliable sing-box config had been successful written into {}",
-                    i
-                )
-            } else {
-                println!("\nMinimal configuration:");
-                println!("\n{}", j);
+impl Args {
+    fn ayaya(&self) -> Result<()> {
+        match &self.cmd {
+            Command::Show { tags } => {
+                let source = self.source.as_ref().expect("checked");
+                let cfg: ClashCfg = if self.source.as_ref().unwrap().starts_with("http") {
+                    ClashCfg::new_from_subscribe_link(self.source.as_ref().unwrap().as_str())?
+                } else {
+                    ClashCfg::new_from_config_file(&source)?
+                };
+                let node_info = cfg.get_node_data_full()?;
+                let proxy_str = node_info.proxies_string_pretty()?;
+                println!("{proxy_str}");
+                if *tags {
+                    let tags = node_info.print_tags()?;
+                    println!();
+                    println!();
+                    println!("{tags}");
+                }
+                Ok(())
             }
-        }
-        false => {
-            let j = match args.format {
-                true => to_string_pretty(&valued_nodes_json).unwrap(),
-                false => to_string(&valued_nodes_json).unwrap(),
-            };
+            Command::Gen { paradigm } => {
+                let source = self.source.as_ref().expect("checked");
+                let cfg: ClashCfg = if self.source.as_ref().unwrap().starts_with("http") {
+                    ClashCfg::new_from_subscribe_link(self.source.as_ref().unwrap().as_str())?
+                } else {
+                    ClashCfg::new_from_config_file(&source)?
+                };
 
-            println!("sing-box client outbound:\n\n\n{}", j);
+                let node_info = cfg.get_node_data_full()?;
 
-            if let Some(i) = args.output {
-                write(&i, j.as_bytes()).unwrap();
-                println!("\n\n\nSuccessful written into {}", i)
+                if let Some(i) = paradigm {
+                    let mut prd: serde_json::Value =
+                        serde_json::from_str(std::fs::read_to_string(i)?.as_str())?;
+                    node_info.merge_to_value(&mut prd);
+                    println!("{}", prd)
+                } else {
+                    println!("{}", serde_json::to_string_pretty(&node_info.merge_min())?)
+                };
+
+                Ok(())
             }
+            Command::Append { dst: _ } => todo!(),
         }
     }
+}
+
+fn main() -> Result<()> {
+    let args = Args::parse();
+    let _: () = match (&args.source, &args.url) {
+        (Some(_), _) => (),
+        (_, Some(_)) => (),
+        _ => return Err(anyhow!("Either source or url need to provide")),
+    };
+
+    args.ayaya()
 }
