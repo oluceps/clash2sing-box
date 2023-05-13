@@ -14,39 +14,45 @@
 
 ---
 
-Parse clash subscribe link and generate pretty-printed indented minimal avaliable sing-box profile  
+Generate minimal sing-box profile from clash profile (local path or url)  
 ```console
-./ctos --subscribe "<URL>" -g -f -o ./config.json
+./ctos -s "http://<...>" gen > config.json
+
+# or
+./ctos -s "./config.yaml" gen > config.json
 ```  
+This will generate minimal avaliable sing-box format profile
+from exist clash config.
 
-Parse clash subscribe link  
+---
+
+Parse clash config 
 ```console  
-./ctos --subscribe "<URL>"  
-```
+./ctos -s "./config.yaml" show  
 
-Parse clash `config.yaml`  
-```console
-./ctos --path <PATH TO config.yaml>  
-```   
-
-Converting clash profile to minimal sing-box profile  
-```console
-./ctos --path <PATH TO config.yaml> -g -f -o ./config.json   
+# show proxies name list by adding `-t`
+./ctos -s "./config.yaml" show -t 
 ```
+This will get converted proxies list from clash profile,
+and tag names (if `--tags` added).  
+You could manualy append it into sing-box config.
 
 ## Commands  
 ```console
 > ./ctos --help
-Usage: ctos [OPTIONS]
+Usage: ctos [OPTIONS] <COMMAND>
+
+Commands:
+  show    Show sing-box proxies info from clash profile
+  gen     Generate sing-box profile from clash format
+  append  Append new clash proxies to existed sing-box profile [WIP]
+  help    Print this message or the help of the given subcommand(s)
 
 Options:
-  -p, --path <PATH>        Read path of clash format config.yaml file
-  -s, --subscribe <URL>    Get clash subscription profile by url
-  -f                       Output pretty-printed indented JSON
-  -g, --gen-profile        Generate minimal avaliable sing-box JSON profile
-  -o, --output <PATH>      Output sing-box JSON profile
-  -h, --help               Print help information
-  -V, --version            Print version information
+  -s, --source <SOURCE>  clash config file path(url)
+  -u, --url <URL>        clash subscription url
+  -h, --help             Print help
+  -V, --version          Print version
 ```
 
 ## Nix flake support
@@ -54,18 +60,16 @@ Options:
 Try run application directly on machine with nix installed:
 
 ```bash
-nix run github:olucep/clash2sing-box -- -s "<subscribe link>"
+nix run github:olucep/clash2sing-box -- -s "<subscribe link>" show --tags
 # or any other actions
 ```
 
 
 ## TODO
 
-- [ ] [WIP] Refactor, with more elegant converting
-
 - [ ] Clash rule converting
 
-- [ ] Subcommand `update`, to extend new content into config  
+- [ ] Subcommand `append`, to extend new content into config  
 
 - [ ] Simple and easy-to-use web pannel  
 
