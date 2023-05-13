@@ -60,7 +60,7 @@ Options:
 Try run application directly on machine with nix installed:
 
 ```bash
-nix run github:olucep/clash2sing-box -- -s "<subscribe link>" show --tags
+nix run github:oluceps/clash2sing-box -- -s "<subscribe link>" show --tags
 # or any other actions
 ```
 
