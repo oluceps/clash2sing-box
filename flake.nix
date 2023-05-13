@@ -36,6 +36,9 @@
                 nativeBuildInputs = with pkgs; [ pkg-config ];
                 buildInputs = with pkgs; [ openssl ];
 
+                # network required
+                doCheck = false;
+
                 postInstall = ''
                   mv $out/bin/ctos $out/bin/ctos-${system}
                 '';
