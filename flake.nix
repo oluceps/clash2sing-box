@@ -16,6 +16,8 @@
       (system:
         let
           pkgs = import nixpkgs { inherit system; };
+          version = pkgs.lib.substring 0 8 self.lastModifiedDate
+            or self.lastModified or "19700101";
         in
         rec {
           packages.default =
@@ -26,6 +28,7 @@
                 name = "clash2sing-box";
 
                 src = self;
+                inherit version;
 
                 cargoLock = {
                   lockFile = ./Cargo.lock;
