@@ -90,14 +90,14 @@ jobs:
           args: --release --target ${{ matrix.target }}
 
       - name: Package
-        if:   github.ref == 'refs/heads/main'
+        if:   github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         run: |
           cd target/${{ matrix.target }}/release          
           tar czvf ../../../clash2sing-box-${{ matrix.target }}.tar.gz ctos*
           cd -
       - name: Publish
-        if:   github.ref == 'refs/heads/main'
+        if:   github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v1
         with:
             files: 'clash2sing-box*'
