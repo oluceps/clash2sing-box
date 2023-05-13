@@ -25,16 +25,12 @@ enum Command {
             default_value = "false",
             help = "if show proxy name of all"
         )]
-        show_tags: bool,
+        tags: bool,
     },
     #[clap(about = "Generate sing-box profile from clash format")]
     Gen {
-        #[clap(
-            long,
-            default_value = "./generated.json",
-            help = "location of generated sing-box profile"
-        )]
-        output: String,
+        #[clap(long, help = "location of paradigm sing-box profile")]
+        paradigm: Option<String>,
     },
     #[clap(about = "Append new clash proxies to existed sing-box profile")]
     Append {
@@ -46,8 +42,8 @@ enum Command {
 impl Args {
     fn ayaya(&self) -> Result<()> {
         match &self.cmd {
-            Command::Show { show_tags } => {
-                let source = self.source.clone().expect("checked");
+            Command::Show { tags } => {
+                let source = self.source.as_ref().expect("checked");
                 let cfg: ClashCfg = if self.source.as_ref().unwrap().starts_with("http") {
                     ClashCfg::new_from_subscribe_link(self.source.as_ref().unwrap().as_str())?
                 } else {
@@ -56,7 +52,7 @@ impl Args {
                 let node_info = cfg.get_node_data_full()?;
                 let proxy_str = node_info.proxies_string_pretty()?;
                 println!("{proxy_str}");
-                if *show_tags {
+                if *tags {
                     let tags = node_info.print_tags()?;
                     println!();
                     println!();
@@ -64,8 +60,28 @@ impl Args {
                 }
                 Ok(())
             }
-            Command::Gen { output } => Ok(()),
-            Command::Append { dst } => Ok(()),
+            Command::Gen { paradigm } => {
+                let source = self.source.as_ref().expect("checked");
+                let cfg: ClashCfg = if self.source.as_ref().unwrap().starts_with("http") {
+                    ClashCfg::new_from_subscribe_link(self.source.as_ref().unwrap().as_str())?
+                } else {
+                    ClashCfg::new_from_config_file(&source)?
+                };
+
+                let node_info = cfg.get_node_data_full()?;
+
+                if let Some(i) = paradigm {
+                    let mut prd: serde_json::Value =
+                        serde_json::from_str(std::fs::read_to_string(i)?.as_str())?;
+                    node_info.merge_to_value(&mut prd);
+                    println!("{}", prd)
+                } else {
+                    println!("{}", serde_json::to_string_pretty(&node_info.merge_min())?)
+                };
+
+                Ok(())
+            }
+            Command::Append { dst: _ } => todo!(),
         }
     }
 }

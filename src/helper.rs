@@ -212,14 +212,14 @@ impl NodeInfo {
         serde_json::to_string_pretty(&self.sum_proxies()).map_err(|e| anyhow!(e))
     }
 
-    pub fn merge_to(&self, outer: &mut serde_json::Value) {
+    pub fn merge_to_value(&self, outer: &mut serde_json::Value) {
         outer["outbounds"].merge(self.sum_proxies());
         outer["outbounds"][1]["outbounds"].merge(self.sum_tags());
     }
 
     pub fn merge_min(&self) -> serde_json::Value {
         let mut parad: serde_json::Value = serde_json::from_str(PARADIGM).unwrap();
-        self.merge_to(&mut parad);
+        self.merge_to_value(&mut parad);
         parad
     }
 }
