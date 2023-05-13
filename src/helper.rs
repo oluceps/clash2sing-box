@@ -195,26 +195,29 @@ pub struct NodeInfo {
 
 #[allow(unused)]
 impl NodeInfo {
-    fn sum_proxies(&self) -> serde_json::Value {
+    pub fn sum_proxies(&self) -> serde_json::Value {
         serde_json::to_value(self.list.clone()).unwrap()
     }
-    fn sum_tags(&self) -> serde_json::Value {
+    pub fn sum_tags(&self) -> serde_json::Value {
         serde_json::to_value(self.tags.clone()).unwrap()
     }
-    pub(super) fn proxies_string(&self) -> Result<String> {
+    pub fn print_tags(&self) -> Result<String> {
+        serde_json::to_string_pretty(&self.sum_tags()).map_err(|e| anyhow!(e))
+    }
+    pub fn proxies_string(&self) -> Result<String> {
         serde_json::to_string(&self.sum_proxies()).map_err(|e| anyhow!(e))
     }
 
-    pub(super) fn proxies_string_pretty(&self) -> Result<String> {
+    pub fn proxies_string_pretty(&self) -> Result<String> {
         serde_json::to_string_pretty(&self.sum_proxies()).map_err(|e| anyhow!(e))
     }
 
-    pub(super) fn merge_to(&self, outer: &mut serde_json::Value) {
+    pub fn merge_to(&self, outer: &mut serde_json::Value) {
         outer["outbounds"].merge(self.sum_proxies());
         outer["outbounds"][1]["outbounds"].merge(self.sum_tags());
     }
 
-    pub(super) fn merge_min(&self) -> serde_json::Value {
+    pub fn merge_min(&self) -> serde_json::Value {
         let mut parad: serde_json::Value = serde_json::from_str(PARADIGM).unwrap();
         self.merge_to(&mut parad);
         parad
