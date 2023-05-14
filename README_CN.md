@@ -36,7 +36,7 @@
 
 ```
 
-这将从 Clash 配置获取转换后的代理列表，并显示标签名称（如果添加了 --tags）。您可以手动将其附加到 SingBox 配置中。
+这将从 Clash 配置获取转换后的代理列表，并显示标签名称（如果添加了 --tags）。您可以手动将其附加到 `sing-box` 配置中。
 
 解析`clash`配置文件 并输出`sing-box`节点信息至控制台  
 
@@ -56,9 +56,9 @@ nix run github:oluceps/clash2sing-box -- -s "<订阅链接>" show --tags
 用法：ctos [OPTIONS] <COMMAND>
 
 命令：
-  show    从 Clash 配置显示 SingBox 代理信息
-  gen     从 Clash 格式生成 SingBox 配置
-  append  将新的 Clash 代理追加到现有的 SingBox 配置中 [WIP]
+  show    从 Clash 配置显示 sing-box 代理信息
+  gen     从 Clash 格式生成 sing-box 配置
+  append  将新的 Clash 代理追加到现有的 sing-box 配置中 [WIP]
   help    打印此消息或给定子命令的帮助
 
 选项：
