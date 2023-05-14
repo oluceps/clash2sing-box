@@ -38,15 +38,18 @@ enum Command {
 
 impl Args {
     fn ayaya(&self) -> Result<()> {
+        let produce_cfg = || -> Result<ClashCfg> {
+            let source = self.source.as_str();
+            if self.source.as_str().starts_with("http") {
+                return ClashCfg::new_from_subscribe_link(self.source.as_str());
+            }
+            ClashCfg::new_from_config_file(&source)
+        };
         match &self.cmd {
             Command::Show { tags } => {
-                let source = self.source.as_str();
-                let cfg: ClashCfg = if self.source.as_str().starts_with("http") {
-                    ClashCfg::new_from_subscribe_link(self.source.as_str())?
-                } else {
-                    ClashCfg::new_from_config_file(&source)?
-                };
+                let cfg = produce_cfg()?;
                 let node_info = cfg.get_node_data_full()?;
+
                 let proxy_str = node_info.proxies_string_pretty()?;
                 println!("{proxy_str}");
                 if *tags {
@@ -58,20 +61,14 @@ impl Args {
                 Ok(())
             }
             Command::Gen { paradigm } => {
-                let source = self.source.as_str();
-                let cfg: ClashCfg = if self.source.as_str().starts_with("http") {
-                    ClashCfg::new_from_subscribe_link(self.source.as_str())?
-                } else {
-                    ClashCfg::new_from_config_file(&source)?
-                };
-
+                let cfg = produce_cfg()?;
                 let node_info = cfg.get_node_data_full()?;
 
                 if let Some(i) = paradigm {
                     let mut prd: serde_json::Value =
                         serde_json::from_str(std::fs::read_to_string(i)?.as_str())?;
                     node_info.merge_to_value(&mut prd);
-                    println!("{}", prd)
+                    println!("{prd}")
                 } else {
                     println!("{}", serde_json::to_string_pretty(&node_info.merge_min())?)
                 };
@@ -85,6 +82,5 @@ impl Args {
 
 fn main() -> Result<()> {
     let args = Args::parse();
-
     args.ayaya()
 }

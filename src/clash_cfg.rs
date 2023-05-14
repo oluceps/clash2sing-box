@@ -37,7 +37,7 @@ impl ClashCfg {
     pub fn get_subscribe(link: &str) -> Result<String> {
         let client = reqwest::blocking::Client::new();
         let res = client.get(link).header(USER_AGENT, "clash").send()?;
-        Ok(res.text()?)
+        res.text().map_err(|e| anyhow!(e))
     }
 
     pub fn get_proxies(&self) -> Result<&Yaml> {
