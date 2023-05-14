@@ -6,32 +6,6 @@ use reqwest::header::USER_AGENT;
 use yaml_rust::{Yaml, YamlLoader};
 
 use crate::{helper::NodeInfo, ClashCfg, PerClashProxy};
-pub trait Merge {
-    fn merge(&mut self, new_json_value: serde_json::Value);
-}
-impl Merge for serde_json::Value {
-    fn merge(&mut self, new_json_value: serde_json::Value) {
-        merge(self, &new_json_value);
-    }
-}
-pub fn merge(a: &mut serde_json::Value, b: &serde_json::Value) {
-    match (a, b) {
-        (serde_json::Value::Object(ref mut a), &serde_json::Value::Object(ref b)) => {
-            for (k, v) in b {
-                merge(a.entry(k).or_insert(serde_json::Value::Null), v);
-            }
-        }
-        (serde_json::Value::Array(ref mut a), &serde_json::Value::Array(ref b)) => {
-            a.extend(b.clone());
-        }
-        (serde_json::Value::Array(ref mut a), &serde_json::Value::Object(ref b)) => {
-            a.extend([serde_json::Value::Object(b.clone())]);
-        }
-        (a, b) => {
-            *a = b.clone();
-        }
-    }
-}
 
 impl ClashCfg {
     pub fn new_from_subscribe_link(link: &str) -> Result<Self> {
