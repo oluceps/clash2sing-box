@@ -14,39 +14,59 @@
 
 ---
 
-解析`clash`订阅链接 并生成格式化后的`sing-box`最小配置文件  
+从 Clash 配置生成 sing-box 配置文件：
 ```console
-./ctos --subscribe "<URL>" -g -f -o ./config.json
-```  
+./ctos -s "http://<...>" gen > config.json
 
-解析`clash`订阅链接 并输出`sing-box`节点信息至控制台  
+# 或者
+./ctos -s "./config.yaml" gen > config.json
+
+```  
+这将从现有的 Clash 配置生成最小的可用 SingBox 格式配置文件。
+
+
+
+解析 Clash 配置：
+
 ```console  
-./ctos --subscribe "<URL>"  
+./ctos -s "./config.yaml" show
+
+# 通过添加 `-t` 来显示代理名称列表
+./ctos -s "./config.yaml" show -t
+
 ```
 
-解析`clash`配置文件 并输出`sing-box`节点信息至控制台  
-```console
-./ctos --path <PATH TO config.yaml>  
-```   
+这将从 Clash 配置获取转换后的代理列表，并显示标签名称（如果添加了 --tags）。您可以手动将其附加到 SingBox 配置中。
 
-转换`clash`配置文件到`sing-box`最小配置文件  
+解析`clash`配置文件 并输出`sing-box`节点信息至控制台  
+
+## Nix Flake 支持
+
+在已安装 Nix 的计算机上可以直接运行应用程序：
+
 ```console
-./ctos --path <PATH TO config.yaml> -g -f -o ./config.json   
+nix run github:oluceps/clash2sing-box -- -s "<订阅链接>" show --tags
+# 或执行其他操作
+
 ```
    
 ## 命令选项
 ```console
 > ./ctos --help
-Usage: ctos [OPTIONS]
+用法：ctos [OPTIONS] <COMMAND>
 
-Options:
-  -p, --path <PATH>        Read path of clash format config.yaml file
-  -s, --subscribe <URL>    Get clash subscription profile by url
-  -f                       Output pretty-printed indented JSON
-  -g, --gen-profile        Generate minimal avaliable sing-box JSON profile
-  -o, --output <PATH>      Output sing-box JSON profile
-  -h, --help               Print help information
-  -V, --version            Print version information
+命令：
+  show    从 Clash 配置显示 SingBox 代理信息
+  gen     从 Clash 格式生成 SingBox 配置
+  append  将新的 Clash 代理追加到现有的 SingBox 配置中 [WIP]
+  help    打印此消息或给定子命令的帮助
+
+选项：
+  -s, --source <SOURCE>  Clash 配置文件路径（URL）
+  -u, --url <URL>        Clash 订阅 URL
+  -h, --help             打印帮助
+  -V, --version          打印版本
+
 ```
 
 ### Credits
