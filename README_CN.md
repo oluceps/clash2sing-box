@@ -57,13 +57,12 @@ nix run github:oluceps/clash2sing-box -- -s "<订阅链接>" show --tags
 
 命令：
   show    从 Clash 配置显示 sing-box 代理信息
-  gen     从 Clash 格式生成 sing-box 配置
+  gen     从 Clash 配置生成 sing-box 配置
   append  将新的 Clash 代理追加到现有的 sing-box 配置中 [WIP]
   help    打印此消息或给定子命令的帮助
 
 选项：
-  -s, --source <SOURCE>  Clash 配置文件路径（URL）
-  -u, --url <URL>        Clash 订阅 URL
+  -s, --source <SOURCE>  Clash 配置路径（URL）
   -h, --help             打印帮助
   -V, --version          打印版本
 

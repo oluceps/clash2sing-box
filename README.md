@@ -49,8 +49,7 @@ Commands:
   help    Print this message or the help of the given subcommand(s)
 
 Options:
-  -s, --source <SOURCE>  clash config file path(url)
-  -u, --url <URL>        clash subscription url
+  -s, --source <SOURCE>  clash config path (url)
   -h, --help             Print help
   -V, --version          Print version
 ```

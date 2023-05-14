@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use clap::{Parser, Subcommand};
 use ctos::ClashCfg;
 
@@ -8,11 +8,8 @@ struct Args {
     #[clap(subcommand)]
     cmd: Command,
 
-    #[clap(short, long, help = "clash config file path(url)")]
+    #[clap(short, long, help = "clash config path (url)")]
     source: Option<String>,
-
-    #[clap(short, long, help = "clash subscription url")]
-    url: Option<String>,
 }
 
 #[derive(Subcommand, Debug)]
@@ -88,11 +85,6 @@ impl Args {
 
 fn main() -> Result<()> {
     let args = Args::parse();
-    let _: () = match (&args.source, &args.url) {
-        (Some(_), _) => (),
-        (_, Some(_)) => (),
-        _ => return Err(anyhow!("Either source or url need to provide")),
-    };
 
     args.ayaya()
 }
