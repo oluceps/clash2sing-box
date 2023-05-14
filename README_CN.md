@@ -22,7 +22,7 @@
 ./ctos -s "./config.yaml" gen > config.json
 
 ```  
-这将从现有的 Clash 配置生成最小的可用 SingBox 格式配置文件。
+这将从现有的 Clash 配置生成简洁的 `sing-box` 格式配置文件。
 
 
 
