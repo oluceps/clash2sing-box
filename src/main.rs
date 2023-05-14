@@ -9,7 +9,7 @@ struct Args {
     cmd: Command,
 
     #[clap(short, long, help = "clash config path (url)")]
-    source: Option<String>,
+    source: String,
 }
 
 #[derive(Subcommand, Debug)]
@@ -40,9 +40,9 @@ impl Args {
     fn ayaya(&self) -> Result<()> {
         match &self.cmd {
             Command::Show { tags } => {
-                let source = self.source.as_ref().expect("checked");
-                let cfg: ClashCfg = if self.source.as_ref().unwrap().starts_with("http") {
-                    ClashCfg::new_from_subscribe_link(self.source.as_ref().unwrap().as_str())?
+                let source = self.source.as_str();
+                let cfg: ClashCfg = if self.source.as_str().starts_with("http") {
+                    ClashCfg::new_from_subscribe_link(self.source.as_str())?
                 } else {
                     ClashCfg::new_from_config_file(&source)?
                 };
@@ -58,9 +58,9 @@ impl Args {
                 Ok(())
             }
             Command::Gen { paradigm } => {
-                let source = self.source.as_ref().expect("checked");
-                let cfg: ClashCfg = if self.source.as_ref().unwrap().starts_with("http") {
-                    ClashCfg::new_from_subscribe_link(self.source.as_ref().unwrap().as_str())?
+                let source = self.source.as_str();
+                let cfg: ClashCfg = if self.source.as_str().starts_with("http") {
+                    ClashCfg::new_from_subscribe_link(self.source.as_str())?
                 } else {
                     ClashCfg::new_from_config_file(&source)?
                 };
