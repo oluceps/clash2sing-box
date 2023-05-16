@@ -1,6 +1,7 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use ctos::ClashCfg;
+use todo_by::todo_by;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -75,7 +76,10 @@ impl Args {
 
                 Ok(())
             }
-            Command::Append { dst: _ } => todo!(),
+            Command::Append { dst: _ } => {
+                todo_by!("2023-05-20");
+                Ok(())
+            }
         }
     }
 }
