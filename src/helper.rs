@@ -50,13 +50,14 @@ impl PerClashProxy {
     }
 
     pub(super) fn parse_tls(&self) -> Option<Tls> {
-        if !self.0["tls"].is_badvalue() {
+        if !(self.0["tls"].is_badvalue()
+            & self.0["sni"].is_badvalue()
+            & self.0["alpn"].is_badvalue()
+            & self.0["skip-cert-verify"].is_badvalue()
+            & self.0["servername"].is_badvalue())
+        {
             return Some(Tls {
-                enabled: !(self.0["tls"].is_badvalue()
-                    & self.0["sni"].is_badvalue()
-                    & self.0["alpn"].is_badvalue()
-                    & self.0["skip-cert-verify"].is_badvalue()
-                    & self.0["servername"].is_badvalue()),
+                enabled: true,
 
                 disable_sni: self.0["sni"].to_owned().into_string() == Some("true".to_string()),
 
