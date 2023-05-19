@@ -218,9 +218,50 @@ impl NodeInfo {
         outer["outbounds"][1]["outbounds"].merge(self.sum_tags());
     }
 
+    pub fn append_to(&self, outer: &mut serde_json::Value) {
+        if let serde_json::Value::Array(ref mut a) = outer["outbounds"] {
+            let mut outbounds_contains_default: Vec<&mut serde_json::Value> =
+                a.iter_mut().filter(|x| !x["default"].is_null()).collect();
+
+            let mut target_inner_outbound = outbounds_contains_default.get_mut(0).unwrap();
+            target_inner_outbound["outbounds"].merge(self.sum_tags())
+        }
+
+        outer["outbounds"].merge(self.sum_proxies());
+    }
+
     pub fn merge_min(&self) -> serde_json::Value {
         let mut parad: serde_json::Value = serde_json::from_str(PARADIGM).unwrap();
         self.merge_to_value(&mut parad);
         parad
+    }
+}
+
+/// idk what this is for
+trait InsertOnPst<'a> {
+    fn insert_after(&'a mut self, default: &'a serde_json::Value);
+    fn insert_front(&'a mut self, default: &'a serde_json::Value);
+}
+
+impl<'a> InsertOnPst<'a> for Vec<&'a serde_json::Value> {
+    fn insert_after(&'a mut self, default: &'a serde_json::Value) {
+        if let Some(p) = self.iter().position(|&x| {
+            x.get("default").expect("no fail").to_string()
+                == default.get("tag").expect("nofail").to_string()
+        }) {
+            self.insert(p + 1, default)
+        }
+    }
+    fn insert_front(&'a mut self, default: &'a serde_json::Value) {
+        if let Some(p) = self.iter().position(|&x| {
+            x.get("default").expect("no fail").to_string()
+                == default.get("tag").expect("nofail").to_string()
+        }) {
+            if p != 0 {
+                self.insert(p + 1, default)
+            } else {
+                self.insert(0, default)
+            }
+        }
     }
 }

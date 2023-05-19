@@ -110,4 +110,20 @@ mod tests {
             serde_json::to_string_pretty(&cfg.get_node_data_full().unwrap().merge_min()).is_ok()
         )
     }
+    #[test]
+    fn append_cfg() {
+        // with public subscription
+        let cfg = ClashCfg::new_from_subscribe_link(
+            "https://raw.githubusercontent.com/aiboboxx/clashfree/main/clash.yml",
+        )
+        .unwrap();
+
+        let mut v = serde_json::Value::Null;
+
+        serde_json::to_string_pretty(&cfg.get_node_data_full().unwrap().append_to(&mut v)).unwrap();
+
+        // assert!(
+        //     serde_json::to_string_pretty(&cfg.get_node_data_full().unwrap().merge_min()).is_ok()
+        // )
+    }
 }
