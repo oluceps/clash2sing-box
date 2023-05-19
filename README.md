@@ -37,6 +37,13 @@ This will get converted proxies list from clash profile,
 and tag names (if `--tags` added).  
 You could manualy append it into sing-box config.
 
+---
+
+Append to existed config  
+```console  
+./ctos -s "./config.yaml" append --dst ./config.json  
+```
+
 ## Commands  
 ```console
 > ./ctos --help
