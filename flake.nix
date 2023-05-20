@@ -29,6 +29,7 @@
 
                 src = self;
                 inherit version;
+                cargoBuildFlags = "-p ctos";
 
                 cargoLock = {
                   lockFile = ./Cargo.lock;
@@ -43,8 +44,7 @@
                 nativeBuildInputs = with pkgs; [ pkg-config ];
                 buildInputs = with pkgs; [ openssl ];
 
-                # network required
-                # doCheck = false;
+                doCheck = false;
 
                 postInstall = ''
                   mv $out/bin/ctos $out/bin/ctos-${system}
