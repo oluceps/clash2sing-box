@@ -22,7 +22,7 @@ impl ClashCfg {
     }
 
     pub fn new_from_plain_text(t: &str) -> Result<Self> {
-        Ok(YamlLoader::load_from_str(t.as_ref())?.remove(0).into())
+        Ok(YamlLoader::load_from_str(t)?.remove(0).into())
     }
 
     pub fn to_yaml_data<S, F>(source: S, f: F) -> Result<Yaml>
@@ -37,7 +37,7 @@ impl ClashCfg {
     pub fn get_subscribe(link: &str) -> Result<String> {
         let client = reqwest::blocking::Client::new();
         let res = client.get(link).header(USER_AGENT, "clash").send()?;
-        Ok(res.text()?)
+        res.text().map_err(|e| anyhow!(e))
     }
 
     pub fn get_proxies(&self) -> Result<&Yaml> {
@@ -79,23 +79,6 @@ impl ClashCfg {
             .collect();
 
         types
-    }
-
-    pub fn type_converter(ts: Vec<String>) -> Vec<String> {
-        ts.into_iter()
-            .map(|i| match i.as_str() {
-                "ss" => "Shadowsocks",
-                "trojan" => "Trojan",
-                "socks5" => "Socks",
-                "hysteria" => "Hysteria",
-                "vmess" => "VMess",
-                "ssr" => "Shadowsocksr",
-                "vless" => "Vless",
-                "tuic" => "",
-                _ => "",
-            })
-            .map(|i| i.to_string())
-            .collect()
     }
 
     /// get node data, include tag name and other factors

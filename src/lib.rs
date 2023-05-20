@@ -18,9 +18,9 @@ pub struct ClashCfg(Yaml);
 #[derive(Debug, Clone)]
 pub struct SingboxCfg(serde_json::Value);
 
-impl Into<ClashCfg> for Yaml {
-    fn into(self) -> ClashCfg {
-        ClashCfg(self)
+impl From<Yaml> for ClashCfg {
+    fn from(val: Yaml) -> Self {
+        ClashCfg(val)
     }
 }
 
@@ -37,36 +37,29 @@ impl From<Yaml> for PerClashProxy {
 mod tests {
     use crate::ClashCfg;
 
-    #[test]
-    fn get_from_link() {
-        // with public subscription
-        let cfg = ClashCfg::new_from_subscribe_link(
-            "https://raw.githubusercontent.com/aiboboxx/clashfree/main/clash.yml",
-        );
+    // #[test]
+    // fn get_from_link() {
+    //     // with public subscription
+    //     let cfg = ClashCfg::new_from_subscribe_link(
+    //         "https://raw.githubusercontent.com/aiboboxx/clashfree/main/clash.yml",
+    //     );
 
-        assert!(cfg.is_ok());
-    }
+    //     assert!(cfg.is_ok());
+    // }
 
     #[test]
     fn get_metainfo() {
         // with public subscription
-        let cfg = ClashCfg::new_from_subscribe_link(
-            "https://raw.githubusercontent.com/aiboboxx/clashfree/main/clash.yml",
-        )
-        .unwrap();
+        let cfg = ClashCfg::new_from_config_file("./tests/clash_test.yml").unwrap();
 
         dbg!(cfg.get_node_tags());
         dbg!(cfg.get_node_types());
-        // assert!(cfg.get_node_tags())
     }
 
     #[test]
     fn gen_proxies() {
         // with public subscription
-        let cfg = ClashCfg::new_from_subscribe_link(
-            "https://raw.githubusercontent.com/aiboboxx/clashfree/main/clash.yml",
-        )
-        .unwrap();
+        let cfg = ClashCfg::new_from_config_file("./tests/clash_test.yml").unwrap();
 
         println!(
             "{}",
@@ -96,10 +89,7 @@ mod tests {
     #[test]
     fn merge_config() {
         // with public subscription
-        let cfg = ClashCfg::new_from_subscribe_link(
-            "https://raw.githubusercontent.com/aiboboxx/clashfree/main/clash.yml",
-        )
-        .unwrap();
+        let cfg = ClashCfg::new_from_config_file("./tests/clash_test.yml").unwrap();
 
         println!(
             "{}",
@@ -109,5 +99,19 @@ mod tests {
         assert!(
             serde_json::to_string_pretty(&cfg.get_node_data_full().unwrap().merge_min()).is_ok()
         )
+    }
+    #[test]
+    fn append_cfg() {
+        // with public subscription
+        let cfg = ClashCfg::new_from_config_file("./tests/clash_test.yml").unwrap();
+
+        let mut v: serde_json::Value = serde_json::from_str(
+            std::fs::read_to_string("./tests/prd.json")
+                .as_ref()
+                .unwrap(),
+        )
+        .unwrap();
+
+        serde_json::to_string_pretty(&cfg.get_node_data_full().unwrap().append_to(&mut v)).unwrap();
     }
 }

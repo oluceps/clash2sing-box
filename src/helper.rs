@@ -50,13 +50,14 @@ impl PerClashProxy {
     }
 
     pub(super) fn parse_tls(&self) -> Option<Tls> {
-        if !self.0["tls"].is_badvalue() {
+        if !(self.0["tls"].is_badvalue()
+            & self.0["sni"].is_badvalue()
+            & self.0["alpn"].is_badvalue()
+            & self.0["skip-cert-verify"].is_badvalue()
+            & self.0["servername"].is_badvalue())
+        {
             return Some(Tls {
-                enabled: !(self.0["tls"].is_badvalue()
-                    & self.0["sni"].is_badvalue()
-                    & self.0["alpn"].is_badvalue()
-                    & self.0["skip-cert-verify"].is_badvalue()
-                    & self.0["servername"].is_badvalue()),
+                enabled: true,
 
                 disable_sni: self.0["sni"].to_owned().into_string() == Some("true".to_string()),
 
@@ -161,15 +162,15 @@ impl Merge for serde_json::Value {
 }
 pub fn merge(a: &mut serde_json::Value, b: &serde_json::Value) {
     match (a, b) {
-        (serde_json::Value::Object(ref mut a), &serde_json::Value::Object(ref b)) => {
+        (serde_json::Value::Object(ref mut a), serde_json::Value::Object(b)) => {
             for (k, v) in b {
                 merge(a.entry(k).or_insert(serde_json::Value::Null), v);
             }
         }
-        (serde_json::Value::Array(ref mut a), &serde_json::Value::Array(ref b)) => {
+        (serde_json::Value::Array(ref mut a), serde_json::Value::Array(b)) => {
             a.extend(b.clone());
         }
-        (serde_json::Value::Array(ref mut a), &serde_json::Value::Object(ref b)) => {
+        (serde_json::Value::Array(ref mut a), serde_json::Value::Object(b)) => {
             a.extend([serde_json::Value::Object(b.clone())]);
         }
         (a, b) => {
@@ -178,16 +179,7 @@ pub fn merge(a: &mut serde_json::Value, b: &serde_json::Value) {
     }
 }
 
-impl Default for NodeInfo {
-    fn default() -> Self {
-        Self {
-            list: vec![],
-            tags: vec![],
-        }
-    }
-}
-
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct NodeInfo {
     pub list: Vec<serde_json::Value>,
     pub tags: Vec<String>,
@@ -217,9 +209,48 @@ impl NodeInfo {
         outer["outbounds"][1]["outbounds"].merge(self.sum_tags());
     }
 
+    pub fn append_to(&self, outer: &mut serde_json::Value) {
+        if let serde_json::Value::Array(ref mut a) = outer["outbounds"] {
+            let mut outbounds_contains_default: Vec<&mut serde_json::Value> =
+                a.iter_mut().filter(|x| !x["default"].is_null()).collect();
+
+            let mut target_inner_outbound = outbounds_contains_default.get_mut(0).unwrap();
+            target_inner_outbound["outbounds"].merge(self.sum_tags())
+        }
+
+        outer["outbounds"].merge(self.sum_proxies());
+    }
+
     pub fn merge_min(&self) -> serde_json::Value {
         let mut parad: serde_json::Value = serde_json::from_str(PARADIGM).unwrap();
         self.merge_to_value(&mut parad);
         parad
+    }
+}
+
+/// idk what this is for
+trait InsertOnPst<'a> {
+    fn insert_after(&'a mut self, default: &'a serde_json::Value);
+    fn insert_front(&'a mut self, default: &'a serde_json::Value);
+}
+
+impl<'a> InsertOnPst<'a> for Vec<&'a serde_json::Value> {
+    fn insert_after(&'a mut self, default: &'a serde_json::Value) {
+        if let Some(p) = self.iter().position(|&x| {
+            *x.get("default").expect("no fail") == *default.get("tag").expect("nofail")
+        }) {
+            self.insert(p + 1, default)
+        }
+    }
+    fn insert_front(&'a mut self, default: &'a serde_json::Value) {
+        if let Some(p) = self.iter().position(|&x| {
+            *x.get("default").expect("no fail") == *default.get("tag").expect("nofail")
+        }) {
+            if p != 0 {
+                self.insert(p + 1, default)
+            } else {
+                self.insert(0, default)
+            }
+        }
     }
 }
