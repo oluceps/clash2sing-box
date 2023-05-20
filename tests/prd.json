@@ -1,0 +1,83 @@
+{
+  "dns": {
+    "rules": [
+      {
+        "geosite": "category-ads-all",
+        "server": "block",
+        "disable_cache": true
+      },
+      { "geosite": "cn", "inbound": "tun-in", "server": "local" }
+    ],
+    "servers": [
+      {
+        "address": "tls://8.8.4.4:853",
+        "address_resolver": "local",
+        "address_strategy": "prefer_ipv4",
+        "detour": "direct",
+        "tag": "google"
+      },
+      { "address": "223.6.6.6", "detour": "direct", "tag": "local" },
+      {
+        "tag": "block",
+        "address": "rcode://success"
+      }
+    ],
+    "strategy": "prefer_ipv4"
+  },
+
+  "inbounds": [
+    {
+      "type": "tun",
+      "inet4_address": "172.19.0.1/30",
+      "auto_route": true,
+      "strict_route": false,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "default": "auto",
+      "outbounds": [
+        "auto",
+        "direct",
+        "block"
+      ],
+      "tag": "select",
+      "type": "selector"
+    },
+    
+    {
+      "type": "direct",
+      "tag": "direct"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "geosite": "cn",
+        "geoip": [
+          "private",
+          "cn"
+        ],
+        "outbound": "direct"
+      },
+      {
+        "geosite": "category-ads-all",
+        "outbound": "block"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}
