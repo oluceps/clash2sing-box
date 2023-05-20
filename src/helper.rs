@@ -179,10 +179,7 @@ pub fn merge(a: &mut serde_json::Value, b: &serde_json::Value) {
     }
 }
 
-
-
-#[derive(Debug)]
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct NodeInfo {
     pub list: Vec<serde_json::Value>,
     pub tags: Vec<String>,
@@ -240,16 +237,14 @@ trait InsertOnPst<'a> {
 impl<'a> InsertOnPst<'a> for Vec<&'a serde_json::Value> {
     fn insert_after(&'a mut self, default: &'a serde_json::Value) {
         if let Some(p) = self.iter().position(|&x| {
-            *x.get("default").expect("no fail")
-                == *default.get("tag").expect("nofail")
+            *x.get("default").expect("no fail") == *default.get("tag").expect("nofail")
         }) {
             self.insert(p + 1, default)
         }
     }
     fn insert_front(&'a mut self, default: &'a serde_json::Value) {
         if let Some(p) = self.iter().position(|&x| {
-            *x.get("default").expect("no fail")
-                == *default.get("tag").expect("nofail")
+            *x.get("default").expect("no fail") == *default.get("tag").expect("nofail")
         }) {
             if p != 0 {
                 self.insert(p + 1, default)
