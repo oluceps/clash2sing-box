@@ -1,7 +1,7 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use ctos::{ClashCfg, PathBuf};
-use std::fs::{self, File, OpenOptions};
+use std::fs::{self, OpenOptions};
 use std::io::{Read, Write};
 
 #[allow(unused)]

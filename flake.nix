@@ -40,7 +40,7 @@
                 buildInputs = with pkgs; [ openssl ];
 
                 # network required
-                doCheck = false;
+                # doCheck = false;
 
                 postInstall = ''
                   mv $out/bin/ctos $out/bin/ctos-${system}

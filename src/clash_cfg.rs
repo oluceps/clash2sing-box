@@ -81,23 +81,6 @@ impl ClashCfg {
         types
     }
 
-    pub fn type_converter(ts: Vec<String>) -> Vec<String> {
-        ts.into_iter()
-            .map(|i| match i.as_str() {
-                "ss" => "Shadowsocks",
-                "trojan" => "Trojan",
-                "socks5" => "Socks",
-                "hysteria" => "Hysteria",
-                "vmess" => "VMess",
-                "ssr" => "Shadowsocksr",
-                "vless" => "Vless",
-                "tuic" => "",
-                _ => "",
-            })
-            .map(|i| i.to_string())
-            .collect()
-    }
-
     /// get node data, include tag name and other factors
     pub fn get_node_data_full(&self) -> Result<NodeInfo> {
         let proxies = self.get_proxies()?;
