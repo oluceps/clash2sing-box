@@ -18,9 +18,9 @@ pub struct ClashCfg(Yaml);
 #[derive(Debug, Clone)]
 pub struct SingboxCfg(serde_json::Value);
 
-impl Into<ClashCfg> for Yaml {
-    fn into(self) -> ClashCfg {
-        ClashCfg(self)
+impl From<Yaml> for ClashCfg {
+    fn from(val: Yaml) -> Self {
+        ClashCfg(val)
     }
 }
 

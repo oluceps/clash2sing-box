@@ -22,7 +22,7 @@ impl ClashCfg {
     }
 
     pub fn new_from_plain_text(t: &str) -> Result<Self> {
-        Ok(YamlLoader::load_from_str(t.as_ref())?.remove(0).into())
+        Ok(YamlLoader::load_from_str(t)?.remove(0).into())
     }
 
     pub fn to_yaml_data<S, F>(source: S, f: F) -> Result<Yaml>

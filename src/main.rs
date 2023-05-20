@@ -48,7 +48,7 @@ impl Args {
             if self.source.as_str().starts_with("http") {
                 return ClashCfg::new_from_subscribe_link(self.source.as_str());
             }
-            ClashCfg::new_from_config_file(&source)
+            ClashCfg::new_from_config_file(source)
         };
         match &self.cmd {
             Command::Show { tags } => {
