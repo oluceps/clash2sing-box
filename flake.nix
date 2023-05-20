@@ -32,7 +32,11 @@
 
                 cargoLock = {
                   lockFile = ./Cargo.lock;
+                  outputHashes = {
+                    "yew-0.20.0" = "sha256-x1Z85JMpeJqz1R8D4dbMLol06ZN0bVyIuA057H6Ce38=";
+                  };
                 };
+
 
                 mainProgram = "ctos-${system}";
 
