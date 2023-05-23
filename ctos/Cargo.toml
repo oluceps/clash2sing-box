@@ -12,7 +12,8 @@ serde_yaml = "0.9"
 serde = { version = "1.0", features = ["derive"] }
 yaml-rust = "0.4"
 clap = { version = "4.0.18", features = ["derive"] }
-reqwest = { version = "0.11.12", features = ["blocking", "rustls-tls"], default_features = false }
+reqwest = { version = "0.11.12", features = ["rustls-tls"], default_features = false }
 futures = "0.3"
 anyhow = "1.0.71"
 todo_by = "0.2.1"
+tokio = {version="1.28.1", features = ["rt", "macros"] }
