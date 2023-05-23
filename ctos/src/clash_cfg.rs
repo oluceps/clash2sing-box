@@ -2,12 +2,19 @@ use std::fs::read_to_string;
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
-use reqwest::header::USER_AGENT;
+use reqwest::{header::USER_AGENT, IntoUrl};
 use yaml_rust::{Yaml, YamlLoader};
 
 use crate::{helper::NodeInfo, ClashCfg, PerClashProxy};
 
 impl ClashCfg {
+    pub async fn produce_cfg(url: &str) -> Result<Self> {
+        if url.starts_with("http") {
+            return ClashCfg::new_from_subscribe_link(url).await;
+        }
+        ClashCfg::new_from_config_file(url)
+    }
+
     pub async fn new_from_subscribe_link(link: &str) -> Result<Self> {
         let subsc_str = Self::get_subscribe(link).await.map_err(|e| anyhow!(e))?;
         Self::to_yaml_data(link, |_s| subsc_str).map(|i| i.into())
@@ -35,7 +42,7 @@ impl ClashCfg {
         Ok(raw_config)
     }
 
-    pub async fn get_subscribe(link: &str) -> Result<String> {
+    pub async fn get_subscribe<T: IntoUrl>(link: T) -> Result<String> {
         let client = reqwest::Client::new();
         let res = client.get(link).header(USER_AGENT, "clash").send().await?;
         res.text().await.map_err(|e| anyhow!(e))
