@@ -44,6 +44,11 @@ Append to existed config
 ./ctos -s "./config.yaml" append --dst ./config.json  
 ```
 
+## web panel
+
+![pic](./.github/web.png)
+
+
 ## Commands  
 ```console
 > ./ctos --help
@@ -75,13 +80,11 @@ nix run github:oluceps/clash2sing-box -- -s "<subscribe link>" show --tags
 
 - [ ] Clash rule converting
 
-- [ ] Subcommand `append`, to extend new content into config  
+- [x] Subcommand `append`, to extend new content into config  
 
-- [ ] Simple and easy-to-use web pannel  
+- [x] Simple and easy-to-use web pannel  
 
 - [ ] Auto update with systemd service, with NixOS module
-
-- [ ] Convert to [dae](https://github.com/daeuniverse/dae) config
 
 ### Credits
 + [Clash](https://github.com/Dreamacro/clash)  
