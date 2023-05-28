@@ -42,17 +42,10 @@ enum Command {
 }
 
 impl Args {
-    fn ayaya(&self) -> Result<()> {
-        let produce_cfg = || -> Result<ClashCfg> {
-            let source = self.source.as_str();
-            if self.source.as_str().starts_with("http") {
-                return ClashCfg::new_from_subscribe_link(self.source.as_str());
-            }
-            ClashCfg::new_from_config_file(source)
-        };
+    async fn ayaya(&self) -> Result<()> {
         match &self.cmd {
             Command::Show { tags } => {
-                let cfg = produce_cfg()?;
+                let cfg = ClashCfg::produce_cfg(self.source.as_str()).await?;
                 let node_info = cfg.get_node_data_full()?;
 
                 let proxy_str = node_info.proxies_string_pretty()?;
@@ -66,7 +59,7 @@ impl Args {
                 Ok(())
             }
             Command::Gen { paradigm } => {
-                let cfg = produce_cfg()?;
+                let cfg = ClashCfg::produce_cfg(self.source.as_str()).await?;
                 let node_info = cfg.get_node_data_full()?;
 
                 if let Some(i) = paradigm {
@@ -81,7 +74,7 @@ impl Args {
                 Ok(())
             }
             Command::Append { dst } => {
-                let cfg = produce_cfg()?;
+                let cfg = ClashCfg::produce_cfg(self.source.as_str()).await?;
                 let node_info = cfg.get_node_data_full()?;
 
                 let mut dst_file = OpenOptions::new().read(true).open(dst)?;
@@ -119,7 +112,8 @@ impl Args {
     }
 }
 
-fn main() -> Result<()> {
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> Result<()> {
     let args = Args::parse();
-    args.ayaya()
+    args.ayaya().await
 }

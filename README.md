@@ -44,6 +44,21 @@ Append to existed config
 ./ctos -s "./config.yaml" append --dst ./config.json  
 ```
 
+## web app
+
+demo: https://ctos.magicb.uk
+
+![pic](./.github/web.png)
+
+
+### self host
+
+```console
+git clone https://github.com/oluceps/clash2sing-box.git
+cd clash2sing-box/web
+trunk serve --open
+```
+
 ## Commands  
 ```console
 > ./ctos --help
@@ -75,16 +90,17 @@ nix run github:oluceps/clash2sing-box -- -s "<subscribe link>" show --tags
 
 - [ ] Clash rule converting
 
-- [ ] Subcommand `append`, to extend new content into config  
+- [x] Subcommand `append`, to extend new content into config  
 
-- [ ] Simple and easy-to-use web pannel  
+- [x] Simple and easy-to-use web app  
 
 - [ ] Auto update with systemd service, with NixOS module
 
-- [ ] Convert to [dae](https://github.com/daeuniverse/dae) config
-
 ### Credits
-+ [Clash](https://github.com/Dreamacro/clash)  
-+ [Clash.Meta](https://github.com/MetaCubeX/Clash.Meta)  
-+ [sing-box](https://github.com/SagerNet/sing-box)  
-+ [json_value_merge](https://github.com/jmfiaschi/json_value_merge)
++ [Dreamacro/Clash](https://github.com/Dreamacro/clash)  
++ [MetaCubeX/Clash.Meta](https://github.com/MetaCubeX/Clash.Meta)  
++ [SagerNet/sing-box](https://github.com/SagerNet/sing-box)  
++ [jmfiaschi/json_value_merge](https://github.com/jmfiaschi/json_value_merge)
++ [thedodd/trunk](https://github.com/thedodd/trunk)  
++ [caddyserver/caddy](https://github.com/caddyserver/caddy)  
++ [yewstack/yew](https://github.com/yewstack/yew)  

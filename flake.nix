@@ -29,18 +29,22 @@
 
                 src = self;
                 inherit version;
+                cargoBuildFlags = "-p ctos";
 
                 cargoLock = {
                   lockFile = ./Cargo.lock;
+                  outputHashes = {
+                    "yew-0.20.0" = "sha256-x1Z85JMpeJqz1R8D4dbMLol06ZN0bVyIuA057H6Ce38=";
+                  };
                 };
+
 
                 mainProgram = "ctos-${system}";
 
                 nativeBuildInputs = with pkgs; [ pkg-config ];
                 buildInputs = with pkgs; [ openssl ];
 
-                # network required
-                # doCheck = false;
+                doCheck = false;
 
                 postInstall = ''
                   mv $out/bin/ctos $out/bin/ctos-${system}
