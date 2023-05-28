@@ -1,9 +1,6 @@
 extern crate base64;
 use std::collections::HashMap;
 
-use base64::engine::general_purpose::STANDARD;
-use base64::Engine;
-use gloo::console::log;
 use gloo::file::callbacks::FileReader;
 use gloo::file::File;
 use web_sys::{DragEvent, Event, FileList, HtmlInputElement};
