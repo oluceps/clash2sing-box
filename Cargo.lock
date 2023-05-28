@@ -210,7 +210,7 @@ checksum = "e496a50fda8aacccc86d7529e2c1e0892dbd0f898a6b5645b5561b89c3210efa"
 
 [[package]]
 name = "ctos"
-version = "0.2.6"
+version = "0.2.7"
 dependencies = [
  "anyhow",
  "clap",
@@ -226,7 +226,7 @@ dependencies = [
 
 [[package]]
 name = "ctos-web"
-version = "0.2.6"
+version = "0.2.7"
 dependencies = [
  "base64",
  "ctos",
