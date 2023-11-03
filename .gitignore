@@ -2,3 +2,4 @@
 *.yaml
 *.yml
 /result
+/.direnv
