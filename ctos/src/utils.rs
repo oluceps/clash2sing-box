@@ -18,6 +18,7 @@ impl PerClashProxy {
             "ssr" => "Shadowsocksr",
             "vless" => "Vless",
             "tuic" => "",
+            "http" => "Http",
             _ => "",
         };
 
