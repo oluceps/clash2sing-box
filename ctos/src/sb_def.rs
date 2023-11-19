@@ -190,6 +190,8 @@ pub struct Tls {
     pub certificate_path: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub certificate: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reality: Option<RealityOpts>,
 }
 
 // NOTICE: utls could be use only while enable with_utls build tag
@@ -228,6 +230,13 @@ pub struct Transport {
     pub early_data_header_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub service_name: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct RealityOpts {
+    pub enabled: bool,
+    pub public_key: Option<String>,
+    pub short_id: Option<String>,
 }
 
 build! { Socks, Http, Shadowsocks, Shadowsocksr, Trojan, Hysteria, VMess, Vless, Tuic }

@@ -107,7 +107,7 @@ impl PerClashProxy {
             r#type: "hysteria".to_string(),
             tag: self.named(),
             server: self.str_param("server"),
-            server_port: self.int_param("port"),
+            server_port: self.ports_param(),
             up: self.0["up"].to_owned().into_string(),
             up_mbps: None,
             down: self.0["down"].to_owned().into_string(),
