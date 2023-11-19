@@ -1,8 +1,10 @@
+use core::panic;
+
 use anyhow::{anyhow, Result};
 use yaml_rust::Yaml;
 
 use crate::{
-    sb_def::{Tls, Transport, Utls},
+    sb_def::{RealityOpts, Tls, Transport, Utls},
     PerClashProxy, PARADIGM,
 };
 
@@ -10,6 +12,19 @@ use crate::{
 impl PerClashProxy {
     pub(super) fn str_param(&self, s: &str) -> String {
         self.0[s].to_owned().into_string().unwrap()
+    }
+    pub(super) fn ports_param(&self) -> u16 {
+        let ports = self.0["ports"].to_owned();
+        if !ports.is_badvalue() {
+            if let Some(s) = ports.as_i64() {
+                println!("is some");
+                return self.int_param("ports");
+            }
+
+            panic!("sing-box not suppport hysteria's port hopping")
+        }
+
+        self.int_param("port")
     }
     pub(super) fn int_param(&self, s: &str) -> u16 {
         self.0[s].to_owned().as_i64().map_or_else(
@@ -54,7 +69,8 @@ impl PerClashProxy {
             & self.0["sni"].is_badvalue()
             & self.0["alpn"].is_badvalue()
             & self.0["skip-cert-verify"].is_badvalue()
-            & self.0["servername"].is_badvalue())
+            & self.0["servername"].is_badvalue()
+            & self.0["reality-opts"].is_badvalue())
         {
             return Some(Tls {
                 enabled: true,
@@ -86,6 +102,32 @@ impl PerClashProxy {
 
                 certificate_path: self.0["ca"].to_owned().into_string(),
                 certificate: self.0["ca_str"].to_owned().into_string(),
+
+                reality: if !self.0["reality-opts"].is_badvalue() {
+                    Some(RealityOpts {
+                        enabled: !self.0["reality-opts"].is_badvalue(),
+                        public_key: self.0["reality-opts"]["public-key"]
+                            .to_owned()
+                            .into_string()
+                            .or_else(|| {
+                                self.0["reality-opts"]["public-key"]
+                                    .to_owned()
+                                    .into_i64()
+                                    .and_then(|i| Some(i.to_string()))
+                            }),
+                        short_id: self.0["reality-opts"]["short-id"]
+                            .to_owned()
+                            .into_string()
+                            .or_else(|| {
+                                self.0["reality-opts"]["short-id"]
+                                    .to_owned()
+                                    .into_i64()
+                                    .and_then(|i| Some(i.to_string()))
+                            }),
+                    })
+                } else {
+                    None
+                },
             });
         }
         None
@@ -137,7 +179,7 @@ impl PerClashProxy {
                         .to_owned()
                         .into_string(),
                 }),
-                &_ => todo!(),
+                &_ => None,
             },
             None => None,
         }
