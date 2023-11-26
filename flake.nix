@@ -19,11 +19,19 @@
           pkgs = import nixpkgs { inherit system; };
           version = pkgs.lib.substring 0 8 self.lastModifiedDate
             or self.lastModified or "19700101";
-          naersk' = pkgs.callPackage naersk { };
+          toolchain = with fenix.packages.${system}; combine [
+            minimal.cargo
+            minimal.rustc
+          ];
+          fenix-naersk = naersk.lib.${system}.override {
+            cargo = toolchain;
+            rustc = toolchain;
+          };
+
         in
         rec {
           packages.default =
-            naersk'.buildPackage
+            fenix-naersk.buildPackage
               {
                 name = "clash2sing-box";
 
