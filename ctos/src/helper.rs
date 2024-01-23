@@ -26,6 +26,12 @@ impl PerClashProxy {
 
         self.int_param("port")
     }
+    pub(super) fn parse_hysteria_rate(&self, s: &str) -> u32 {
+        let str = self.0[s].to_owned().into_string().unwrap();
+        String::from(str.split_whitespace().next().unwrap())
+            .parse::<u32>()
+            .unwrap()
+    }
     pub(super) fn int_param(&self, s: &str) -> u16 {
         self.0[s].to_owned().as_i64().map_or_else(
             || {

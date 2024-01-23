@@ -1,6 +1,7 @@
 use crate::{
     sb_def::{
-        Http, Hysteria, Shadowsocks, Shadowsocksr, SingboxNodeDef, Socks, Trojan, VMess, Vless,
+        Http, Hysteria, Hysteria2, Hysteria2Obfs, Shadowsocks, Shadowsocksr, SingboxNodeDef, Socks,
+        Trojan, VMess, Vless,
     },
     PerClashProxy,
 };
@@ -14,6 +15,7 @@ impl PerClashProxy {
             "trojan" => "Trojan",
             "socks5" => "Socks",
             "hysteria" => "Hysteria",
+            "hysteria2" => "Hysteria2",
             "vmess" => "VMess",
             "ssr" => "Shadowsocksr",
             "vless" => "Vless",
@@ -134,6 +136,43 @@ impl PerClashProxy {
             },
             tls: self.parse_tls(),
         });
+
+        // https://github.com/MetaCubeX/Meta-Docs/blob/main/docs/config/proxies/hysteria2.md
+        // TODO: fit
+        create!(Hysteria2 {
+            r#type: "hysteria2".to_string(),
+            tag: self.named(),
+            server: self.str_param("server"),
+            server_port: self.ports_param(),
+            up_mbps: if self.0["up"].is_badvalue() {
+                None
+            } else {
+                Some(self.parse_hysteria_rate(self.0["up"].clone().into_string().unwrap().as_str()))
+            },
+            down_mbps: if self.0["down"].is_badvalue() {
+                None
+            } else {
+                Some(
+                    self.parse_hysteria_rate(
+                        self.0["down"].clone().into_string().unwrap().as_str(),
+                    ),
+                )
+            },
+            obfs: if self.0["obfs"].is_badvalue() {
+                None
+            } else {
+                Some(Hysteria2Obfs {
+                    r#type: String::from("salamander"),
+                    password: self.0["obfs-password"].clone().into_string().unwrap(),
+                })
+            },
+
+            password: self.0["password"].clone().into_string(),
+            network: Some(String::from("tcp")),
+            brutal_debug: false,
+            tls: self.parse_tls(),
+        });
+
         create!(VMess {
             r#type: "vmess".to_string(),
             tag: self.named(),

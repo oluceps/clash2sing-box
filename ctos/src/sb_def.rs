@@ -131,6 +131,43 @@ pub struct Hysteria {
 }
 
 #[derive(Debug, Serialize)]
+pub struct Hysteria2 {
+    pub r#type: String,
+    pub tag: String,
+    pub server: String,
+    pub server_port: u16,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub up_mbps: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub down_mbps: Option<u32>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub password: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub network: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub obfs: Option<Hysteria2Obfs>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tls: Option<Tls>,
+
+    pub brutal_debug: bool,
+}
+
+// "obfs": {
+//   "type": "salamander",
+//   "password": "cry_me_a_r1ver"
+// },
+
+#[derive(Debug, Serialize)]
+pub struct Hysteria2Obfs {
+    pub r#type: String,
+    pub password: String,
+}
+
+#[derive(Debug, Serialize)]
 pub struct VMess {
     pub r#type: String,
     pub tag: String,
@@ -239,4 +276,4 @@ pub struct RealityOpts {
     pub short_id: Option<String>,
 }
 
-build! { Socks, Http, Shadowsocks, Shadowsocksr, Trojan, Hysteria, VMess, Vless, Tuic }
+build! { Socks, Http, Shadowsocks, Shadowsocksr, Trojan, Hysteria,Hysteria2, VMess, Vless, Tuic }
