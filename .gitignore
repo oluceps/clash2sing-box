@@ -1,5 +1,4 @@
 *.json
-*.yaml
-*.yml
 /result
 /.direnv
+/target
