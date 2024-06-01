@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>clash converter</title>
+
+    
+<script type="module">
+import init, * as bindings from '/clash2sing-box/ctos-web-40675e8d8076e795.js';
+const wasm = await init('/clash2sing-box/ctos-web-40675e8d8076e795_bg.wasm');
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script>
+    <link rel="stylesheet" href="/clash2sing-box/styles-a8c36e60fd065d7c.css" integrity="sha384&#x2D;Rz71IPL9&#x2B;J9iaGHm4w8fxcOH408OJQpA2JbFWDBGDwf2OSp8rzEE04LZZok5rP3A"/>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css"
+    />
+  
+<link rel="modulepreload" href="/clash2sing-box/ctos-web-40675e8d8076e795.js" crossorigin=anonymous integrity="sha384-+t1G/qCqRYCJpQtRyJzCNh6A/Frm+DJDExOH8AQNo8wsGjngTeGfQCY8xyYMXHLx">
+<link rel="preload" href="/clash2sing-box/ctos-web-40675e8d8076e795_bg.wasm" crossorigin=anonymous integrity="sha384-qH2rC8mwD7xM/UQn7bmKV6DP4jnAr5hLfdQFFhpCtqTIPhaJhYFOUyrY7kxAs234" as="fetch" type="application/wasm"></head>
+
+  <body></body>
+</html>
